@@ -155,8 +155,14 @@ export const useEnhancedMessages = () => {
           reactions: [],
           sender_username: undefined,
           sender_avatar_url: undefined,
-          file_name: undefined,
-          file_size: undefined
+          file_name: msg.file_name || undefined,
+          file_size: msg.file_size || undefined,
+          mime_type: msg.mime_type || undefined,
+          duration: msg.duration || undefined,
+          is_pinned: msg.is_pinned || false,
+          edited_at: msg.edited_at || undefined,
+          reply_to_id: msg.reply_to_id || undefined,
+          is_soft_deleted: msg.is_soft_deleted || false
         }));
 
         return messages;

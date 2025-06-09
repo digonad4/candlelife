@@ -1,3 +1,4 @@
+
 export enum MessageStatus {
   SENDING = 'sending',
   SENT = 'sent',
@@ -36,7 +37,9 @@ export interface Message {
   sender_avatar_url?: string;
   file_name?: string;
   file_size?: number;
+  mime_type?: string;
   duration?: number;
+  is_pinned?: boolean;
   reactions?: MessageReaction[];
 }
 

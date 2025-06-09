@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface UserProfileModalProps {
   userId: string;
@@ -71,7 +72,10 @@ export const UserProfileModal = ({
         .single();
 
       setProfile({
-        ...profileData,
+        id: profileData.id,
+        username: profileData.username || 'Usuário',
+        avatar_url: profileData.avatar_url || undefined,
+        created_at: profileData.created_at,
         status: presenceData?.status,
         last_seen: presenceData?.last_seen
       });
@@ -90,9 +94,12 @@ export const UserProfileModal = ({
 
   const checkFriendshipStatus = async () => {
     try {
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (!currentUser.user) return;
+
       const { data, error } = await supabase.rpc('are_friends', {
         p_user1_id: userId,
-        p_user2_id: (await supabase.auth.getUser()).data.user?.id
+        p_user2_id: currentUser.user.id
       });
 
       if (!error) {
