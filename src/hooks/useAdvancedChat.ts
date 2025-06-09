@@ -16,20 +16,39 @@ export const useAdvancedChat = (otherUserId: string) => {
 
   // Upload de arquivo para Supabase Storage
   const uploadFile = async (file: File): Promise<string> => {
+    if (!user) throw new Error('User not authenticated');
+
     const fileExt = file.name.split('.').pop();
-    const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
     
-    const { data, error } = await supabase.storage
-      .from('chat-attachments')
-      .upload(fileName, file);
+    try {
+      // Verificar se o bucket existe, se não criar
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.find(bucket => bucket.name === 'chat-attachments');
+      
+      if (!bucketExists) {
+        await supabase.storage.createBucket('chat-attachments', {
+          public: true,
+          allowedMimeTypes: ['image/*', 'audio/*', 'video/*', 'application/pdf', 'text/*'],
+          fileSizeLimit: 50 * 1024 * 1024 // 50MB
+        });
+      }
 
-    if (error) throw error;
+      const { data, error } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file);
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('chat-attachments')
-      .getPublicUrl(fileName);
+      if (error) throw error;
 
-    return publicUrl;
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
   };
 
   // Buscar mensagens da conversa
@@ -47,12 +66,13 @@ export const useAdvancedChat = (otherUserId: string) => {
             message_reactions(*)
           `)
           .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
+          .eq('is_soft_deleted', false)
           .order('created_at', { ascending: true });
 
         if (error) throw error;
 
-        // Descriptografar mensagens
-        const decryptedMessages = await Promise.all(
+        // Descriptografar mensagens e processar dados
+        const processedMessages = await Promise.all(
           (data || []).map(async (msg: any) => {
             let content = msg.content;
             
@@ -73,12 +93,16 @@ export const useAdvancedChat = (otherUserId: string) => {
               ...msg,
               content,
               reactions: msg.message_reactions || [],
-              link_previews: msg.message_link_previews || []
+              link_previews: msg.message_link_previews || [],
+              message_type: msg.attachment_url ? 
+                (msg.mime_type?.startsWith('image/') ? 'image' : 
+                 msg.mime_type?.startsWith('audio/') ? 'audio' : 
+                 msg.mime_type?.startsWith('video/') ? 'video' : 'file') : 'text'
             };
           })
         );
 
-        return decryptedMessages;
+        return processedMessages;
       },
       enabled: !!user && !!otherUserId,
       refetchInterval: 3000,
@@ -91,30 +115,37 @@ export const useAdvancedChat = (otherUserId: string) => {
       mutationFn: async ({ 
         content, 
         attachment, 
-        replyToId 
+        replyToId,
+        attachmentUrl,
+        fileName,
+        fileSize,
+        mimeType
       }: { 
         content: string; 
         attachment?: File; 
         replyToId?: string;
+        attachmentUrl?: string;
+        fileName?: string;
+        fileSize?: number;
+        mimeType?: string;
       }) => {
         if (!user) throw new Error('User not authenticated');
 
-        let attachmentUrl = '';
-        let fileName = '';
-        let fileSize = 0;
-        let mimeType = '';
+        let finalAttachmentUrl = attachmentUrl;
+        let finalFileName = fileName;
+        let finalFileSize = fileSize;
+        let finalMimeType = mimeType;
         let duration = 0;
 
-        // Upload de arquivo se existir
-        if (attachment) {
-          attachmentUrl = await uploadFile(attachment);
-          fileName = attachment.name;
-          fileSize = attachment.size;
-          mimeType = attachment.type;
+        // Upload de arquivo se existir e não foi processado
+        if (attachment && !attachmentUrl) {
+          finalAttachmentUrl = await uploadFile(attachment);
+          finalFileName = attachment.name;
+          finalFileSize = attachment.size;
+          finalMimeType = attachment.type;
           
           // Para arquivos de áudio, extrair duração (simplificado)
           if (attachment.type.startsWith('audio/')) {
-            // Em produção, usar biblioteca para extrair duração real
             duration = 30; // placeholder
           }
         }
@@ -130,10 +161,10 @@ export const useAdvancedChat = (otherUserId: string) => {
           recipient_id: otherUserId,
           content: iv ? '' : content, // Conteúdo vazio se criptografado
           encrypted_content: iv ? encryptedContent : null,
-          attachment_url: attachmentUrl || null,
-          file_name: fileName || null,
-          file_size: fileSize || null,
-          mime_type: mimeType || null,
+          attachment_url: finalAttachmentUrl || null,
+          file_name: finalFileName || null,
+          file_size: finalFileSize || null,
+          mime_type: finalMimeType || null,
           duration: duration || null,
           reply_to_id: replyToId || null,
         };
@@ -147,10 +178,12 @@ export const useAdvancedChat = (otherUserId: string) => {
         if (error) throw error;
 
         // Extrair e salvar links se existirem
-        await supabase.rpc('extract_message_links', {
-          p_message_id: data.id,
-          p_content: content
-        });
+        if (content) {
+          await supabase.rpc('extract_message_links', {
+            p_message_id: data.id,
+            p_content: content
+          });
+        }
 
         return data;
       },

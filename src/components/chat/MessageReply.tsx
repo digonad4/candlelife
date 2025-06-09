@@ -1,29 +1,34 @@
 
-import { X, Reply } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Message } from '@/types/messages';
 
 interface MessageReplyProps {
-  replyingTo: Message | null;
+  replyingTo: Message;
   onCancelReply: () => void;
 }
 
-export const MessageReply = ({ replyingTo, onCancelReply }: MessageReplyProps) => {
-  if (!replyingTo) return null;
-
+export const MessageReply = ({
+  replyingTo,
+  onCancelReply
+}: MessageReplyProps) => {
   return (
-    <div className="flex items-center gap-2 p-3 bg-muted/50 border-l-4 border-primary">
-      <Reply className="h-4 w-4 text-muted-foreground" />
+    <div className="bg-muted/50 border-l-4 border-primary p-3 flex items-center justify-between">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-muted-foreground">
-          Respondendo a {replyingTo.sender_username || 'Usuário'}
-        </p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+          <span>Respondendo a {replyingTo.sender_username || 'Usuário'}</span>
+        </div>
         <p className="text-sm truncate">
           {replyingTo.content}
         </p>
       </div>
-      <Button size="sm" variant="ghost" onClick={onCancelReply}>
-        <X className="h-4 w-4" />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onCancelReply}
+        className="h-6 w-6 p-0 ml-2"
+      >
+        <X className="h-3 w-3" />
       </Button>
     </div>
   );

@@ -9,6 +9,8 @@ import { LinkPreview } from './LinkPreview';
 import { AttachmentUpload } from '../social/chat/AttachmentUpload';
 import { MessageSelector } from './MessageSelector';
 import { Message } from '@/types/messages';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 interface EnhancedChatInputProps {
   onSendMessage: (content: string, attachment?: File, replyTo?: string) => Promise<void>;
@@ -31,6 +33,7 @@ export const EnhancedChatInput = ({
   currentUserId,
   onStartReply
 }: EnhancedChatInputProps) => {
+  const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
@@ -38,6 +41,7 @@ export const EnhancedChatInput = ({
   const [detectedLinks, setDetectedLinks] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [showMessageSelector, setShowMessageSelector] = useState(false);
+  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -50,7 +54,7 @@ export const EnhancedChatInput = ({
   }, [message]);
 
   // Gerenciar status de digitação
-  const handleTypingChange = (typing: boolean) => {
+  const handleTypingChange = useCallback((typing: boolean) => {
     if (typing !== isTyping) {
       setIsTyping(typing);
       onTypingStatusChange(typing);
@@ -66,11 +70,49 @@ export const EnhancedChatInput = ({
         onTypingStatusChange(false);
       }, 3000);
     }
-  };
+  }, [isTyping, onTypingStatusChange]);
 
   const handleInputChange = (value: string) => {
     setMessage(value);
     handleTypingChange(value.trim().length > 0);
+  };
+
+  // Upload de arquivo para Supabase Storage
+  const uploadFile = async (file: File): Promise<string> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    
+    try {
+      // Verificar se o bucket existe, se não criar
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.find(bucket => bucket.name === 'chat-attachments');
+      
+      if (!bucketExists) {
+        await supabase.storage.createBucket('chat-attachments', {
+          public: true,
+          allowedMimeTypes: ['image/*', 'audio/*', 'video/*', 'application/pdf', 'text/*'],
+          fileSizeLimit: 50 * 1024 * 1024 // 50MB
+        });
+      }
+
+      const { data, error } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      // Fallback: criar URL local temporária
+      return URL.createObjectURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,13 +123,24 @@ export const EnhancedChatInput = ({
     }
 
     try {
+      let uploadedFile = attachment;
+      
+      // Se há anexo, fazer upload
+      if (attachment) {
+        const attachmentUrl = await uploadFile(attachment);
+        // Criar um novo File object com a URL como nome para referência
+        uploadedFile = new File([attachment], attachmentUrl, { type: attachment.type });
+      }
+
       await onSendMessage(
-        message, 
-        attachment || undefined, 
+        message || (attachment ? `📎 ${attachment.name}` : ''), 
+        uploadedFile || undefined, 
         replyingTo?.id
       );
+      
       setMessage("");
       setAttachment(null);
+      setAttachmentPreview(null);
       handleTypingChange(false);
       textareaRef.current?.focus();
     } catch (error) {
@@ -99,6 +152,21 @@ export const EnhancedChatInput = ({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
+    }
+  };
+
+  const handleFileSelect = (file: File) => {
+    setAttachment(file);
+    
+    // Criar preview para imagens
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAttachmentPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setAttachmentPreview(null);
     }
   };
 
@@ -117,6 +185,7 @@ export const EnhancedChatInput = ({
 
   const removeAttachment = () => {
     setAttachment(null);
+    setAttachmentPreview(null);
   };
 
   const removeLinkPreview = (linkToRemove: string) => {
@@ -178,9 +247,26 @@ export const EnhancedChatInput = ({
         {/* File attachment preview */}
         {attachment && (
           <div className="p-3 border-b">
-            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-              <Paperclip className="h-4 w-4" />
-              <span className="text-sm truncate flex-1">{attachment.name}</span>
+            <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+              {attachmentPreview ? (
+                <img 
+                  src={attachmentPreview} 
+                  alt="Preview" 
+                  className="w-16 h-16 object-cover rounded"
+                />
+              ) : (
+                <div className="w-16 h-16 bg-background rounded flex items-center justify-center">
+                  <Paperclip className="h-6 w-6" />
+                </div>
+              )}
+              
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{attachment.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+              
               <Button
                 variant="ghost"
                 size="sm"
@@ -222,7 +308,7 @@ export const EnhancedChatInput = ({
               </Button>
 
               {/* Attachment button */}
-              <AttachmentUpload onFileSelect={setAttachment} />
+              <AttachmentUpload onFileSelect={handleFileSelect} />
               
               {/* Audio button */}
               <Button

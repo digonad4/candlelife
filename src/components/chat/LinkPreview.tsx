@@ -1,46 +1,44 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, X } from 'lucide-react';
-
-interface LinkPreviewData {
-  url: string;
-  title?: string;
-  description?: string;
-  image?: string;
-  siteName?: string;
-}
+import { X, ExternalLink } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LinkPreviewProps {
   url: string;
-  onRemove?: () => void;
   showRemove?: boolean;
+  onRemove?: () => void;
+  className?: string;
 }
 
-export const LinkPreview = ({ url, onRemove, showRemove }: LinkPreviewProps) => {
-  const [previewData, setPreviewData] = useState<LinkPreviewData | null>(null);
+export const LinkPreview = ({
+  url,
+  showRemove = false,
+  onRemove,
+  className
+}: LinkPreviewProps) => {
+  const [preview, setPreview] = useState<{
+    title?: string;
+    description?: string;
+    image?: string;
+    siteName?: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
+    // Simulação de preview - em produção usar API real
     const fetchPreview = async () => {
+      setIsLoading(true);
       try {
-        // Simulação de busca de metadados - em produção usar serviço real
-        const response = await fetch(`https://api.linkpreview.net/?key=YOUR_API_KEY&q=${encodeURIComponent(url)}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPreviewData({
-            url,
-            title: data.title,
-            description: data.description,
-            image: data.image,
-            siteName: data.site
-          });
-        } else {
-          setError(true);
-        }
-      } catch (err) {
-        setError(true);
+        // Simulação de dados de preview
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setPreview({
+          title: "Link Preview",
+          description: "Descrição do link...",
+          siteName: new URL(url).hostname
+        });
+      } catch (error) {
+        console.error('Erro ao buscar preview:', error);
       } finally {
         setIsLoading(false);
       }
@@ -51,79 +49,44 @@ export const LinkPreview = ({ url, onRemove, showRemove }: LinkPreviewProps) => 
 
   if (isLoading) {
     return (
-      <div className="border rounded-lg p-3 animate-pulse">
-        <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-muted rounded w-1/2"></div>
-      </div>
-    );
-  }
-
-  if (error || !previewData) {
-    return (
-      <div className="flex items-center gap-2 p-2 bg-muted rounded">
-        <ExternalLink className="h-4 w-4 text-muted-foreground" />
-        <a 
-          href={url} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-sm text-primary hover:underline truncate flex-1"
-        >
-          {url}
-        </a>
-        {showRemove && onRemove && (
-          <Button size="sm" variant="ghost" onClick={onRemove}>
-            <X className="h-3 w-3" />
-          </Button>
-        )}
+      <div className={cn("border rounded-lg p-3 bg-muted animate-pulse", className)}>
+        <div className="h-4 bg-muted-foreground/20 rounded mb-2"></div>
+        <div className="h-3 bg-muted-foreground/20 rounded w-2/3"></div>
       </div>
     );
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden max-w-md">
-      {previewData.image && (
-        <img 
-          src={previewData.image} 
-          alt={previewData.title}
-          className="w-full h-32 object-cover"
-        />
-      )}
+    <div className={cn("border rounded-lg overflow-hidden bg-background", className)}>
       <div className="p-3">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            {previewData.title && (
-              <h4 className="font-medium text-sm line-clamp-2 mb-1">
-                {previewData.title}
-              </h4>
-            )}
-            {previewData.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                {previewData.description}
+            <h4 className="font-medium text-sm truncate">
+              {preview?.title || url}
+            </h4>
+            {preview?.description && (
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                {preview.description}
               </p>
             )}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2 mt-2">
               <ExternalLink className="h-3 w-3 text-muted-foreground" />
               <span className="text-xs text-muted-foreground truncate">
-                {previewData.siteName || new URL(url).hostname}
+                {preview?.siteName || new URL(url).hostname}
               </span>
             </div>
           </div>
-          
-          {showRemove && onRemove && (
-            <Button size="sm" variant="ghost" onClick={onRemove}>
+          {showRemove && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onRemove}
+              className="h-6 w-6 p-0 ml-2"
+            >
               <X className="h-3 w-3" />
             </Button>
           )}
         </div>
-        
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="w-full mt-2"
-          onClick={() => window.open(url, '_blank')}
-        >
-          Abrir link
-        </Button>
       </div>
     </div>
   );

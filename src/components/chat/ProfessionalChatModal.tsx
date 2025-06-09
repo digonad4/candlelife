@@ -39,7 +39,8 @@ export const ProfessionalChatModal = ({
     usePinMessage,
     useMarkAsRead,
     replyingTo,
-    setReplyingTo
+    setReplyingTo,
+    uploadFile
   } = useAdvancedChat(recipientId);
 
   const messagesQuery = useMessages();
@@ -61,7 +62,7 @@ export const ProfessionalChatModal = ({
     if (isOpen && messages.length > 0) {
       markAsReadMutation.mutate();
     }
-  }, [isOpen, messages.length]);
+  }, [isOpen, messages.length, markAsReadMutation]);
 
   // Agrupar mensagens consecutivas do mesmo usuário
   const groupMessages = () => {
@@ -81,10 +82,40 @@ export const ProfessionalChatModal = ({
   };
 
   const handleSendMessage = async (content: string, attachment?: File, replyToId?: string) => {
+    let attachmentUrl = '';
+    let fileName = '';
+    let fileSize = 0;
+    let mimeType = '';
+
+    // Upload de arquivo se existir
+    if (attachment) {
+      try {
+        // Se o attachment já tem uma URL (foi processado), usar ela
+        if (attachment.name.startsWith('http')) {
+          attachmentUrl = attachment.name;
+          fileName = 'uploaded_file';
+          fileSize = attachment.size;
+          mimeType = attachment.type;
+        } else {
+          attachmentUrl = await uploadFile(attachment);
+          fileName = attachment.name;
+          fileSize = attachment.size;
+          mimeType = attachment.type;
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        // Continuar sem anexo se upload falhar
+      }
+    }
+
     await sendMessageMutation.mutateAsync({
       content,
       attachment,
-      replyToId
+      replyToId,
+      attachmentUrl,
+      fileName,
+      fileSize,
+      mimeType
     });
   };
 
