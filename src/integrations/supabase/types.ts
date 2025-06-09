@@ -71,6 +71,72 @@ export type Database = {
           },
         ]
       }
+      conversation_keys: {
+        Row: {
+          created_at: string | null
+          encryption_key: string
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          encryption_key: string
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string | null
+          encryption_key?: string
+          id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      conversation_settings: {
+        Row: {
+          archived: boolean | null
+          background_image: string | null
+          created_at: string | null
+          id: string
+          muted: boolean | null
+          nickname: string | null
+          notifications_enabled: boolean | null
+          other_user_id: string
+          pinned: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean | null
+          background_image?: string | null
+          created_at?: string | null
+          id?: string
+          muted?: boolean | null
+          nickname?: string | null
+          notifications_enabled?: boolean | null
+          other_user_id: string
+          pinned?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          archived?: boolean | null
+          background_image?: string | null
+          created_at?: string | null
+          id?: string
+          muted?: boolean | null
+          nickname?: string | null
+          notifications_enabled?: boolean | null
+          other_user_id?: string
+          pinned?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_goals: {
         Row: {
           active: boolean
@@ -214,6 +280,79 @@ export type Database = {
           },
         ]
       }
+      message_link_previews: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          message_id: string
+          site_name: string | null
+          title: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          message_id: string
+          site_name?: string | null
+          title?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          message_id?: string
+          site_name?: string | null
+          title?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_link_previews_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           attachment_url: string | null
@@ -222,11 +361,18 @@ export type Database = {
           deleted_at: string | null
           deleted_by_recipient: boolean | null
           delivered_at: string | null
+          duration: number | null
           edit_history: Json | null
           edited_at: string | null
+          encrypted_content: string | null
+          encryption_key_id: string | null
+          file_name: string | null
+          file_size: number | null
           id: string
+          is_pinned: boolean | null
           is_soft_deleted: boolean | null
           message_status: string | null
+          mime_type: string | null
           read: boolean
           read_at: string | null
           recipient_id: string
@@ -240,11 +386,18 @@ export type Database = {
           deleted_at?: string | null
           deleted_by_recipient?: boolean | null
           delivered_at?: string | null
+          duration?: number | null
           edit_history?: Json | null
           edited_at?: string | null
+          encrypted_content?: string | null
+          encryption_key_id?: string | null
+          file_name?: string | null
+          file_size?: number | null
           id?: string
+          is_pinned?: boolean | null
           is_soft_deleted?: boolean | null
           message_status?: string | null
+          mime_type?: string | null
           read?: boolean
           read_at?: string | null
           recipient_id: string
@@ -258,11 +411,18 @@ export type Database = {
           deleted_at?: string | null
           deleted_by_recipient?: boolean | null
           delivered_at?: string | null
+          duration?: number | null
           edit_history?: Json | null
           edited_at?: string | null
+          encrypted_content?: string | null
+          encryption_key_id?: string | null
+          file_name?: string | null
+          file_size?: number | null
           id?: string
+          is_pinned?: boolean | null
           is_soft_deleted?: boolean | null
           message_status?: string | null
+          mime_type?: string | null
           read?: boolean
           read_at?: string | null
           recipient_id?: string
@@ -314,6 +474,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pinned_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          id: string
+          message_id: string
+          pinned_by: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          message_id: string
+          pinned_by: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          message_id?: string
+          pinned_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pinned_messages_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
@@ -661,6 +853,30 @@ export type Database = {
         Args: { p_message_id: string; p_user_id: string; p_new_content: string }
         Returns: undefined
       }
+      extract_message_links: {
+        Args: { p_message_id: string; p_content: string }
+        Returns: undefined
+      }
+      get_chat_users: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          username: string
+          avatar_url: string
+          last_message: string
+          last_message_at: string
+          unread_count: number
+          is_online: boolean
+        }[]
+      }
+      get_conversation_settings: {
+        Args: { p_user_id: string; p_other_user_id: string }
+        Returns: Json
+      }
+      get_or_create_conversation_key: {
+        Args: { p_other_user_id: string }
+        Returns: string
+      }
       get_reaction_counts_by_post: {
         Args: { post_id: string }
         Returns: {
@@ -708,9 +924,21 @@ export type Database = {
         Args: { p_message_id: string; p_user_id: string }
         Returns: undefined
       }
+      toggle_message_reaction: {
+        Args: {
+          p_message_id: string
+          p_user_id: string
+          p_reaction_type: string
+        }
+        Returns: Json
+      }
       toggle_reaction: {
         Args: { p_post_id: string; p_user_id: string; p_reaction_type: string }
         Returns: Json
+      }
+      update_conversation_settings: {
+        Args: { p_user_id: string; p_other_user_id: string; p_settings: Json }
+        Returns: undefined
       }
       update_typing_status: {
         Args: {
