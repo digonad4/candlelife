@@ -166,6 +166,9 @@ export const ProfessionalChatModal = ({
             isSubmitting={sendMessageMutation.isPending}
             replyingTo={replyingTo}
             onCancelReply={() => setReplyingTo(null)}
+            messages={messages}
+            currentUserId={user?.id}
+            onStartReply={handleReply}
           />
         </DialogContent>
       </Dialog>
