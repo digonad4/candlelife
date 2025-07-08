@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2, RotateCcw, Circle } from 'lucide-react';
 import { ChatUser } from '@/types/messages';
-import { useUserPresence } from '@/hooks/useUserPresence';
+// import { useUserPresence } from '@/hooks/useUserPresence';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -30,9 +30,9 @@ export const SwipeableChatItem = ({
   const startX = useRef(0);
   const currentX = useRef(0);
 
-  const { isUserOnline, getLastSeen } = useUserPresence();
-  const isOnline = isUserOnline(chatUser.id);
-  const lastSeen = getLastSeen(chatUser.id);
+  // const { isUserOnline, getLastSeen } = useUserPresence();
+  const isOnline = chatUser.is_online || false;
+  const lastSeen = null; // getLastSeen(chatUser.id);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
