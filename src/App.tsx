@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { UnifiedThemeProvider } from "@/context/UnifiedThemeContext";
 import { MessagesProvider } from "@/context/MessagesContext";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
@@ -43,6 +44,7 @@ function App() {
             <MessagesProvider>
               <Toaster />
               <Sonner />
+              <InstallPrompt />
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />

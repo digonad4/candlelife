@@ -31,7 +31,7 @@ export const SwipeableChatItem = ({
   const currentX = useRef(0);
 
   // const { isUserOnline, getLastSeen } = useUserPresence();
-  const isOnline = chatUser.is_online || false;
+  const isOnline = chatUser.unread_count !== undefined ? true : false; // Temporary fix
   const lastSeen = null; // getLastSeen(chatUser.id);
 
   const handleTouchStart = (e: React.TouchEvent) => {

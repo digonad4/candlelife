@@ -69,8 +69,13 @@ export const usePushNotifications = () => {
       };
 
       await supabase
-        .from('push_subscriptions')
-        .upsert(subscriptionData, { onConflict: 'user_id,endpoint' });
+        .from('push_tokens')
+        .upsert({
+          user_id: user.id,
+          token: JSON.stringify(subscriptionData),
+          platform: 'web',
+          device_info: 'PWA Push Subscription'
+        }, { onConflict: 'user_id' });
     } catch (error) {
       console.error('Error saving push subscription:', error);
     }
@@ -83,10 +88,9 @@ export const usePushNotifications = () => {
       await subscription.unsubscribe();
       
       await supabase
-        .from('push_subscriptions')
+        .from('push_tokens')
         .delete()
-        .eq('user_id', user.id)
-        .eq('endpoint', subscription.endpoint);
+        .eq('user_id', user.id);
 
       setSubscription(null);
       return true;
