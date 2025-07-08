@@ -7,12 +7,14 @@ interface AttachmentUploadProps {
   onFileSelect: (file: File) => void;
   accept?: string;
   disabled?: boolean;
+  isUploading?: boolean;
 }
 
 export const AttachmentUpload = ({
   onFileSelect,
   accept = "image/*,audio/*,video/*,.pdf,.doc,.docx,.txt",
-  disabled = false
+  disabled = false,
+  isUploading = false
 }: AttachmentUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,7 +48,7 @@ export const AttachmentUpload = ({
         variant="ghost"
         size="sm"
         onClick={handleClick}
-        disabled={disabled}
+        disabled={disabled || isUploading}
         className="h-10"
         title="Anexar arquivo"
       >
