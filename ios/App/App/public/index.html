@@ -1,18 +1,131 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>green-wallet</title>
-    <meta name="description" content="Lovable Generated Project"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <title>Candle Life - Chat & Finanças</title>
+    <meta name="description" content="App de chat e gestão financeira pessoal"/>
     <meta name="author" content="Lovable"/>
+    <meta name="theme-color" content="#8B5CF6"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-mobile-web-app-title" content="CandleLife"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta property="og:title" content="Candle Life - Chat & Finanças"/>
+    <meta property="og:description" content="App de chat e gestão financeira pessoal"/>
     <meta property="og:image" content="/og-image.png"/>
-  <script type="module" crossorigin src="/assets/index-B3vtuk5L.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-D9MgTU8s.css">
+    <meta property="og:type" content="website"/>
+    <link rel="manifest" href="/manifest.json"/>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon"/>
+    <link rel="apple-touch-icon" href="/icon-192x192.png"/>
+    <link rel="apple-touch-startup-image" href="/icon-512x512.png"/>
+    <style>
+      /* Minimal fallback splash for very slow connections */
+      #fallback-splash {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: hsl(0, 0%, 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        font-family: 'Inter', sans-serif;
+        transition: opacity 0.5s ease-out;
+        color: hsl(222.2, 84%, 4.9%);
+      }
+      
+      #fallback-splash.dark-mode {
+        background: hsl(222.2, 84%, 4.9%);
+        color: hsl(210, 40%, 98%);
+      }
+      
+      #fallback-logo {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: pulse 2s infinite;
+      }
+      
+      #fallback-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+      
+      #fallback-subtitle {
+        font-size: 1rem;
+        opacity: 0.8;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+      
+      .splash-fade-out {
+        opacity: 0;
+      }
+    </style>
+  <script type="module" crossorigin src="/assets/index-D74jGDHn.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DIW6yXmb.css">
 </head>
 
 <body>
+<div id="fallback-splash">
+  <div id="fallback-logo">🕯️</div>
+  <div id="fallback-title">Candle Life</div>
+  <div id="fallback-subtitle">Chat & Finanças</div>
+</div>
 <div id="root"></div>
-<script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+<script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+<script>
+  // PWA Installation
+  let deferredPrompt;
+  
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('PWA installable');
+  });
+  
+  // Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+        })
+        .catch((registrationError) => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    });
+  }
+  
+  // Fallback Splash Screen Hide - apenas para conexões muito lentas
+  window.addEventListener('load', () => {
+    // Detectar tema preferido do usuário
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    const isDarkTheme = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    const fallbackSplash = document.getElementById('fallback-splash');
+    if (fallbackSplash && isDarkTheme) {
+      fallbackSplash.classList.add('dark-mode');
+    }
+    
+    // Remover splash de fallback após o React carregar
+    setTimeout(() => {
+      if (fallbackSplash) {
+        fallbackSplash.classList.add('splash-fade-out');
+        setTimeout(() => {
+          fallbackSplash.style.display = 'none';
+        }, 500);
+      }
+    }, 1000);
+  });
+</script>
 </body>
 </html>

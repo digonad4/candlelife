@@ -5,8 +5,15 @@ import { Download, X, Smartphone } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 export const InstallPrompt = () => {
-  const { canInstall, installApp } = usePWAInstall();
-  const [dismissed, setDismissed] = useState(false);
+  const { canInstall, installApp, dismissInstallPrompt } = usePWAInstall();
+  const [dismissed, setDismissed] = useState(() => {
+    const dismissedTime = localStorage.getItem('installPromptDismissed');
+    if (dismissedTime) {
+      const elapsed = Date.now() - parseInt(dismissedTime);
+      return elapsed < 24 * 60 * 60 * 1000; // 24 hours
+    }
+    return false;
+  });
 
   if (!canInstall || dismissed) return null;
 
@@ -14,7 +21,13 @@ export const InstallPrompt = () => {
     const success = await installApp();
     if (success || !success) {
       setDismissed(true);
+      dismissInstallPrompt();
     }
+  };
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    dismissInstallPrompt();
   };
 
   return (
@@ -28,7 +41,7 @@ export const InstallPrompt = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setDismissed(true)}
+            onClick={handleDismiss}
             className="h-8 w-8 text-muted-foreground"
           >
             <X className="h-4 w-4" />
@@ -46,7 +59,7 @@ export const InstallPrompt = () => {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => setDismissed(true)}
+            onClick={handleDismiss}
             size="sm"
           >
             Agora não

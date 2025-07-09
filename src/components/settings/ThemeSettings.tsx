@@ -6,7 +6,7 @@ import {
   Moon, Sun, Monitor
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useTheme } from "@/components/theme-provider";
+import { useUnifiedTheme } from "@/context/UnifiedThemeContext";
 
 // Group themes by category for better organization
 const themeCategories = [
@@ -24,7 +24,7 @@ const themeCategories = [
 const allThemes = themeCategories.flatMap(category => category.themes);
 
 export const ThemeSettings = () => {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useUnifiedTheme();
   const { toast } = useToast();
   const [selectedTheme, setSelectedTheme] = useState(theme);
   const [isUpdating, setIsUpdating] = useState(false);

@@ -53,11 +53,22 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
           
           if (data && data.theme_name) {
             const userTheme = data.theme_name as Theme;
-            setThemeState(userTheme);
-            localStorage.setItem("theme", userTheme);
+            // Só atualiza se for diferente do tema atual do localStorage
+            const currentTheme = localStorage.getItem("theme") as Theme;
+            if (currentTheme !== userTheme) {
+              setThemeState(userTheme);
+              localStorage.setItem("theme", userTheme);
+            }
           }
         } catch (error) {
           console.error("Error loading user theme:", error);
+        }
+      }
+      // Quando o usuário faz logout (user === null), mantém o tema do localStorage
+      else {
+        const savedTheme = localStorage.getItem("theme") as Theme;
+        if (savedTheme && savedTheme !== theme) {
+          setThemeState(savedTheme);
         }
       }
     };

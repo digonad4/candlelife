@@ -20,68 +20,62 @@
     <link rel="apple-touch-icon" href="/icon-192x192.png"/>
     <link rel="apple-touch-startup-image" href="/icon-512x512.png"/>
     <style>
-      #splash-screen {
+      /* Minimal fallback splash for very slow connections */
+      #fallback-splash {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, #8B5CF6 0%, #D946EF 100%);
+        background: hsl(0, 0%, 100%);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        color: white;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: 'Inter', sans-serif;
+        transition: opacity 0.5s ease-out;
+        color: hsl(222.2, 84%, 4.9%);
       }
       
-      #splash-logo {
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 48px;
-        font-weight: bold;
-        margin-bottom: 24px;
-        backdrop-filter: blur(10px);
+      #fallback-splash.dark-mode {
+        background: hsl(222.2, 84%, 4.9%);
+        color: hsl(210, 40%, 98%);
+      }
+      
+      #fallback-logo {
+        font-size: 4rem;
+        margin-bottom: 1rem;
         animation: pulse 2s infinite;
       }
       
-      #splash-title {
-        font-size: 28px;
+      #fallback-title {
+        font-size: 2rem;
         font-weight: bold;
-        margin-bottom: 8px;
-        text-align: center;
+        margin-bottom: 0.5rem;
       }
       
-      #splash-subtitle {
-        font-size: 16px;
-        opacity: 0.9;
-        text-align: center;
+      #fallback-subtitle {
+        font-size: 1rem;
+        opacity: 0.8;
       }
       
       @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.05); opacity: 0.8; }
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
       }
       
       .splash-fade-out {
         opacity: 0;
-        transform: scale(0.9);
-        transition: all 0.5s ease-in-out;
       }
     </style>
 </head>
 
 <body>
-<div id="splash-screen">
-  <div id="splash-logo">🕯️</div>
-  <div id="splash-title">Candle Life</div>
-  <div id="splash-subtitle">Chat & Finanças</div>
+<div id="fallback-splash">
+  <div id="fallback-logo">🕯️</div>
+  <div id="fallback-title">Candle Life</div>
+  <div id="fallback-subtitle">Chat & Finanças</div>
 </div>
 <div id="root"></div>
 <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
@@ -109,17 +103,27 @@
     });
   }
   
-  // Splash Screen Hide
+  // Fallback Splash Screen Hide - apenas para conexões muito lentas
   window.addEventListener('load', () => {
+    // Detectar tema preferido do usuário
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+    const isDarkTheme = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    const fallbackSplash = document.getElementById('fallback-splash');
+    if (fallbackSplash && isDarkTheme) {
+      fallbackSplash.classList.add('dark-mode');
+    }
+    
+    // Remover splash de fallback após o React carregar
     setTimeout(() => {
-      const splash = document.getElementById('splash-screen');
-      if (splash) {
-        splash.classList.add('splash-fade-out');
+      if (fallbackSplash) {
+        fallbackSplash.classList.add('splash-fade-out');
         setTimeout(() => {
-          splash.style.display = 'none';
+          fallbackSplash.style.display = 'none';
         }, 500);
       }
-    }, 2000);
+    }, 1000);
   });
 </script>
 </body>

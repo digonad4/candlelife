@@ -1,94 +1,200 @@
-
-import React from "react";
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from "@/components/ui/popover";
+import { useState, useCallback } from "react";
+import { Search, Plus, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
-type UserSearchResult = {
+interface User {
   id: string;
   username: string;
-  avatar_url: string | null;
-};
-
-interface UserSearchProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  searchQuery: string;
-  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  isSearching: boolean;
-  searchResults: UserSearchResult[];
-  onSelectUser: (user: UserSearchResult) => void;
-  trigger: React.ReactNode;
+  avatar_url?: string;
+  is_friend: boolean;
 }
 
-export const UserSearch = ({
-  isOpen,
-  onOpenChange,
-  searchQuery,
-  onSearchChange,
-  isSearching,
-  searchResults,
-  onSelectUser,
-  trigger
-}: UserSearchProps) => {
+interface UserSearchProps {
+  onUserSelect?: (user: User) => void;
+  onStartChat?: (user: User) => void;
+}
+
+export const UserSearch = ({ onUserSelect, onStartChat }: UserSearchProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const { user: currentUser } = useAuth();
+
+  const searchUsers = useCallback(async (term: string) => {
+    if (!term.trim() || term.length < 2) {
+      setUsers([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('search_users', {
+        search_term: term
+      });
+
+      if (error) {
+        console.error('Error searching users:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível buscar usuários",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      toast({
+        title: "Erro", 
+        description: "Erro ao buscar usuários",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    searchUsers(value);
+  };
+
+  const handleAddFriend = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('send_friend_request', {
+        p_receiver_id: userId
+      });
+
+      if (error) {
+        console.error('Error sending friend request:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível enviar solicitação de amizade",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const result = data as { success: boolean; message: string };
+      
+      if (result.success) {
+        toast({
+          title: "Sucesso",
+          description: result.message
+        });
+        
+        // Refresh search results
+        searchUsers(searchTerm);
+      } else {
+        toast({
+          title: "Aviso",
+          description: result.message,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error adding friend:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao enviar solicitação",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleStartChat = (user: User) => {
+    if (onStartChat) {
+      onStartChat(user);
+    }
+  };
+
+  const handleUserSelect = (user: User) => {
+    if (onUserSelect) {
+      onUserSelect(user);
+    }
+  };
+
   return (
-    <Popover open={isOpen} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        {trigger}
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-2">
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Buscar usuários</h3>
-          <Input
-            placeholder="Digite um nome..."
-            value={searchQuery}
-            onChange={onSearchChange}
-            className="w-full"
-          />
-          
-          <div className="max-h-48 overflow-y-auto mt-2">
-            {isSearching ? (
-              <div className="flex justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            ) : searchResults.length > 0 ? (
-              <div className="space-y-1">
-                {searchResults.map((user) => (
-                  <Button
-                    key={user.id}
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => onSelectUser(user)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        {user.avatar_url ? (
-                          <AvatarImage src={user.avatar_url} />
-                        ) : (
-                          <AvatarFallback>
-                            {user.username[0].toUpperCase()}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      <span className="truncate">{user.username}</span>
-                    </div>
-                  </Button>
-                ))}
-              </div>
-            ) : searchQuery.trim().length > 0 ? (
-              <p className="text-sm text-muted-foreground py-2 text-center">
-                Nenhum usuário encontrado
-              </p>
-            ) : null}
-          </div>
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar usuários..."
+          value={searchTerm}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {isLoading && (
+        <div className="text-center py-4 text-muted-foreground">
+          Buscando...
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+
+      {users.length > 0 && (
+        <div className="space-y-2">
+          {users.map((user) => (
+            <Card key={user.id} className="hover:bg-muted/50 transition-colors">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div 
+                    className="flex items-center gap-3 flex-1 cursor-pointer"
+                    onClick={() => handleUserSelect(user)}
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.avatar_url} />
+                      <AvatarFallback>
+                        {user.username.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{user.username}</p>
+                      {user.is_friend && (
+                        <p className="text-xs text-green-500">✓ Amigo</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleStartChat(user)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    
+                    {!user.is_friend && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddFriend(user.id)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {searchTerm.length >= 2 && !isLoading && users.length === 0 && (
+        <div className="text-center py-4 text-muted-foreground">
+          Nenhum usuário encontrado
+        </div>
+      )}
+    </div>
   );
 };

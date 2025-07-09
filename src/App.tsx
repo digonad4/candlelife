@@ -8,6 +8,8 @@ import { AuthProvider } from "@/context/AuthContext";
 import { UnifiedThemeProvider } from "@/context/UnifiedThemeContext";
 import { MessagesProvider } from "@/context/MessagesContext";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { PWAInitializer } from "@/components/pwa/PWAInitializer";
+
 
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
@@ -42,40 +44,41 @@ function App() {
         <AuthProvider>
           <UnifiedThemeProvider>
             <MessagesProvider>
-              <Toaster />
-              <Sonner />
-              <InstallPrompt />
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/change-password" element={<ChangePassword />} />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <AppLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Index />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="transactions" element={<Transactions />} />
-                  <Route path="expenses" element={<Expenses />} />
-                  <Route path="invoiced" element={<InvoicedTransactions />} />
-                  <Route path="goals" element={<Goals />} />
-                  <Route path="clients" element={<Clients />} />
-                  <Route path="chat" element={<ChatPage />} />
-                  <Route path="chat/:userId" element={<ChatConversationPage />} />
-                  <Route path="social" element={<Social />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="about" element={<About />} />
-                  <Route path="contact" element={<Contact />} />
-                  <Route path="support" element={<Support />} />
-                  <Route path="privacy" element={<Privacy />} />
-                  <Route path="terms" element={<Terms />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                <PWAInitializer />
+                <Toaster />
+                <Sonner />
+                <InstallPrompt />
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/change-password" element={<ChangePassword />} />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<Index />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="transactions" element={<Transactions />} />
+                    <Route path="expenses" element={<Expenses />} />
+                    <Route path="invoiced" element={<InvoicedTransactions />} />
+                    <Route path="goals" element={<Goals />} />
+                    <Route path="clients" element={<Clients />} />
+                    <Route path="chat" element={<ChatPage />} />
+                    <Route path="chat/:userId" element={<ChatConversationPage />} />
+                    <Route path="social" element={<Social />} />
+                    <Route path="settings" element={<Settings />} />
+                    <Route path="about" element={<About />} />
+                    <Route path="contact" element={<Contact />} />
+                    <Route path="support" element={<Support />} />
+                    <Route path="privacy" element={<Privacy />} />
+                    <Route path="terms" element={<Terms />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
             </MessagesProvider>
           </UnifiedThemeProvider>
         </AuthProvider>

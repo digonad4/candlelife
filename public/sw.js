@@ -1,7 +1,7 @@
 
 // Service Worker para PWA e Push Notifications
-const CACHE_NAME = 'candlelife-v2';
-const STATIC_CACHE = 'candlelife-static-v2';
+const CACHE_NAME = 'candlelife-v3';
+const STATIC_CACHE = 'candlelife-static-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -137,26 +137,59 @@ self.addEventListener('notificationclick', (event) => {
   
   event.notification.close();
 
-  if (event.action === 'open') {
-    // Abrir a aplicação na conversa específica
-    const conversationId = event.notification.data.conversationId;
-    const url = conversationId ? `/#/social?chat=${conversationId}` : '/#/social';
-    
+  const notificationData = event.notification.data || {};
+  let targetUrl = '/';
+
+  // Determinar URL baseado no tipo de notificação
+  switch (notificationData.type) {
+    case 'message':
+      const conversationId = notificationData.conversationId;
+      targetUrl = conversationId ? `/chat/${conversationId}` : '/social';
+      break;
+    case 'transaction':
+      targetUrl = '/transactions';
+      break;
+    case 'goal':
+      targetUrl = '/goals';
+      break;
+    case 'social':
+      targetUrl = '/social';
+      break;
+    default:
+      targetUrl = notificationData.url || '/';
+  }
+
+  if (event.action === 'open' || !event.action) {
     event.waitUntil(
-      self.clients.matchAll({ type: 'window' }).then((clients) => {
-        // Verificar se já existe uma janela aberta
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        // Procurar janela existente
         for (let client of clients) {
-          if (client.url.includes('/social') && 'focus' in client) {
+          if (client.url.includes(window.location.origin) && 'focus' in client) {
+            // Focar na janela existente e navegar
+            client.postMessage({
+              type: 'NAVIGATE',
+              url: targetUrl,
+              notificationData: notificationData
+            });
             return client.focus();
           }
         }
         
         // Se não existe janela aberta, abrir nova
         if (self.clients.openWindow) {
-          return self.clients.openWindow(url);
+          return self.clients.openWindow(targetUrl);
         }
       })
     );
+  }
+  
+  // Log da interação para analytics
+  if (notificationData.messageId) {
+    console.log('Notification interaction logged:', {
+      messageId: notificationData.messageId,
+      action: event.action || 'click',
+      timestamp: new Date().toISOString()
+    });
   }
 });
 

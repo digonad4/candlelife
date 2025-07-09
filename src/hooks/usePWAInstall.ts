@@ -13,12 +13,28 @@ export const usePWAInstall = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isInWebAppiOS = (window.navigator as any).standalone === true;
-    setIsInstalled(isStandalone || isInWebAppiOS);
+    const installed = isStandalone || isInWebAppiOS;
+    setIsInstalled(installed);
+
+    // Show install prompt after delay if not installed and not dismissed recently
+    if (!installed) {
+      const dismissedTime = localStorage.getItem('installPromptDismissed');
+      const shouldShow = !dismissedTime || (Date.now() - parseInt(dismissedTime)) > 24 * 60 * 60 * 1000;
+      
+      if (shouldShow) {
+        const timer = setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 3000); // Show after 3 seconds
+
+        return () => clearTimeout(timer);
+      }
+    }
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -32,6 +48,7 @@ export const usePWAInstall = () => {
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setCanInstall(false);
+      setShowInstallPrompt(false);
       setDeferredPrompt(null);
     };
 
@@ -63,9 +80,16 @@ export const usePWAInstall = () => {
     }
   };
 
+  const dismissInstallPrompt = () => {
+    setShowInstallPrompt(false);
+    // Don't show again for 24 hours
+    localStorage.setItem('installPromptDismissed', Date.now().toString());
+  };
+
   return {
-    canInstall,
+    canInstall: canInstall || showInstallPrompt,
     isInstalled,
-    installApp
+    installApp,
+    dismissInstallPrompt
   };
 };
