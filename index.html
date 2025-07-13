@@ -8,9 +8,12 @@
     <meta name="author" content="Lovable"/>
     <meta name="theme-color" content="#8B5CF6"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
-    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
     <meta name="apple-mobile-web-app-title" content="CandleLife"/>
     <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="application-name" content="CandleLife"/>
+    <meta name="msapplication-TileColor" content="#8B5CF6"/>
+    <meta name="msapplication-TileImage" content="/icon-192x192.png"/>
     <meta property="og:title" content="Candle Life - Chat & Finanças"/>
     <meta property="og:description" content="App de chat e gestão financeira pessoal"/>
     <meta property="og:image" content="/og-image.png"/>
@@ -81,26 +84,33 @@
 <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
 <script type="module" src="/src/main.tsx"></script>
 <script>
-  // PWA Installation
-  let deferredPrompt;
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    console.log('PWA installable');
-  });
-  
-  // Service Worker Registration
+  // Service Worker Registration with detailed logging
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
           console.log('SW registered: ', registration);
+          
+          // Listen for updates
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            console.log('SW update found');
+            
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New SW installed, will activate on refresh');
+                }
+              });
+            }
+          });
         })
         .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
+          console.error('SW registration failed: ', registrationError);
         });
     });
+  } else {
+    console.log('Service Workers not supported');
   }
   
   // Fallback Splash Screen Hide - apenas para conexões muito lentas

@@ -164,7 +164,7 @@ self.addEventListener('notificationclick', (event) => {
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
         // Procurar janela existente
         for (let client of clients) {
-          if (client.url.includes(window.location.origin) && 'focus' in client) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
             // Focar na janela existente e navegar
             client.postMessage({
               type: 'NAVIGATE',
