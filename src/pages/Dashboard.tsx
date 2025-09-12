@@ -10,6 +10,7 @@ import { Plus } from "lucide-react";
 import { subDays } from "date-fns";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { EnhancedFinancialInsights } from "@/components/insights/EnhancedFinancialInsights";
+import { SmartInsights } from "@/components/analytics/SmartInsights";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
@@ -48,6 +49,11 @@ const Dashboard = () => {
 
       {/* Enhanced Financial Insights with Goals */}
       <EnhancedFinancialInsights />
+
+      {/* Smart Insights Preview */}
+      <div className="grid gap-6">
+        <SmartInsights />
+      </div>
 
       {/* Chart */}
       <div className="w-full">

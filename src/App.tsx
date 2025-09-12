@@ -30,6 +30,7 @@ import Contact from "@/pages/Contact";
 import Support from "@/pages/Support";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Analytics from "@/pages/Analytics";
 import NotFound from "@/pages/NotFound";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -66,6 +67,7 @@ function App() {
                     <Route path="expenses" element={<Expenses />} />
                     <Route path="invoiced" element={<InvoicedTransactions />} />
                     <Route path="goals" element={<Goals />} />
+                    <Route path="analytics" element={<Analytics />} />
                     <Route path="clients" element={<Clients />} />
                     <Route path="chat" element={<ChatPage />} />
                     <Route path="chat/:userId" element={<ChatConversationPage />} />

@@ -15,12 +15,15 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const goalSchema = z.object({
-  goal_type: z.enum(["emergency_fund", "purchase_goal", "investment_goal", "custom_goal"]),
+  goal_type: z.enum(["emergency_fund", "purchase_goal", "investment_goal", "custom_goal", "spending_limit", "category_budget", "savings_rate"]),
   amount: z.number().min(1, "O valor deve ser maior que R$ 0"),
   target_date: z.string().optional(),
   monthly_contribution: z.number().min(0).optional(),
   description: z.string().optional(),
   goal_icon: z.string().optional(),
+  goal_category: z.string().optional(),
+  period_type: z.string().optional(),
+  alert_threshold: z.number().min(0).max(1).optional(),
 });
 
 type GoalFormData = z.infer<typeof goalSchema>;
@@ -37,6 +40,9 @@ const goalTypes = [
   { value: "purchase_goal", label: "Meta de Compra", icon: "🛒", description: "Para aquela compra especial" },
   { value: "investment_goal", label: "Meta de Investimento", icon: "📈", description: "Para crescer seu patrimônio" },
   { value: "custom_goal", label: "Meta Personalizada", icon: "🎯", description: "Para seus objetivos únicos" },
+  { value: "spending_limit", label: "Limite de Gastos", icon: "🚫", description: "Controle seus gastos mensais" },
+  { value: "category_budget", label: "Orçamento por Categoria", icon: "📊", description: "Meta específica por categoria" },
+  { value: "savings_rate", label: "Taxa de Poupança", icon: "💰", description: "Meta de percentual poupado" },
 ];
 
 const getIconForType = (type: string) => {

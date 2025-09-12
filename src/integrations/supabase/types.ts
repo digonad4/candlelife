@@ -214,17 +214,22 @@ export type Database = {
       financial_goals: {
         Row: {
           active: boolean
+          alert_threshold: number | null
           amount: number
           category: string | null
           created_at: string
           current_amount: number | null
           description: string | null
           end_date: string | null
+          goal_category: string | null
           goal_icon: string | null
           goal_type: string
           id: string
+          is_recurring: boolean | null
           monthly_contribution: number | null
           period: string
+          period_type: string | null
+          priority_level: number | null
           start_date: string
           target_date: string | null
           updated_at: string
@@ -232,17 +237,22 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          alert_threshold?: number | null
           amount: number
           category?: string | null
           created_at?: string
           current_amount?: number | null
           description?: string | null
           end_date?: string | null
+          goal_category?: string | null
           goal_icon?: string | null
           goal_type: string
           id?: string
+          is_recurring?: boolean | null
           monthly_contribution?: number | null
           period?: string
+          period_type?: string | null
+          priority_level?: number | null
           start_date?: string
           target_date?: string | null
           updated_at?: string
@@ -250,17 +260,22 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          alert_threshold?: number | null
           amount?: number
           category?: string | null
           created_at?: string
           current_amount?: number | null
           description?: string | null
           end_date?: string | null
+          goal_category?: string | null
           goal_icon?: string | null
           goal_type?: string
           id?: string
+          is_recurring?: boolean | null
           monthly_contribution?: number | null
           period?: string
+          period_type?: string | null
+          priority_level?: number | null
           start_date?: string
           target_date?: string | null
           updated_at?: string
@@ -928,6 +943,56 @@ export type Database = {
           },
         ]
       }
+      smart_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          expires_at: string | null
+          goal_id: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          severity: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          expires_at?: string | null
+          goal_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          severity?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          expires_at?: string | null
+          goal_id?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          severity?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_alerts_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "financial_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -1133,6 +1198,10 @@ export type Database = {
     Functions: {
       accept_friend_request: {
         Args: { p_request_id: string }
+        Returns: Json
+      }
+      analyze_spending_patterns: {
+        Args: { p_days?: number; p_user_id: string }
         Returns: Json
       }
       are_friends: {

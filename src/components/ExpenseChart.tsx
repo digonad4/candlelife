@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoogleChartWrapperChartType } from "react-google-charts";
-import { ChartData } from "./chart/ChartData";
+import { SmartChart } from "./analytics/SmartChart";
+import { useGoals } from "@/hooks/useGoals";
 import { usePeriodLabel } from "./chart/usePeriodLabel";
 import { useTransactionData } from "./chart/useTransactionData";
 import { TimeRangeSelector } from "./chart/TimeRangeSelector";
@@ -12,6 +13,7 @@ interface ExpenseChartProps {
 }
 
 export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
+  const { goals } = useGoals();
   const [chartType] = useState<GoogleChartWrapperChartType>("CandlestickChart");
   const [timeRange, setTimeRange] = useState("individual");
 
@@ -28,8 +30,9 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
       </CardHeader>
       <CardContent className="h-[500px] flex flex-col">
         <div className="flex-1 h-full">
-          <ChartData 
+          <SmartChart 
             transactions={transactions || []} 
+            goals={goals}
             chartType={chartType} 
             timeRange={timeRange} 
             isLoading={isLoading} 

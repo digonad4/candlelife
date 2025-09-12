@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 export interface FinancialGoal {
   id: string;
   user_id: string;
-  goal_type: "emergency_fund" | "purchase_goal" | "investment_goal" | "custom_goal";
+  goal_type: "emergency_fund" | "purchase_goal" | "investment_goal" | "custom_goal" | "spending_limit" | "category_budget" | "savings_rate";
   category?: string;
   amount: number;
   period: "monthly" | "yearly";
@@ -20,6 +20,11 @@ export interface FinancialGoal {
   active: boolean;
   created_at: string;
   updated_at: string;
+  goal_category?: string;
+  period_type?: string;
+  alert_threshold?: number;
+  is_recurring?: boolean;
+  priority_level?: number;
 }
 
 export interface CreateGoalData {
