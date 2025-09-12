@@ -7,10 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
@@ -1141,8 +1141,8 @@ export type Database = {
       }
       check_rate_limit: {
         Args: {
-          p_identifier: string
           p_attempt_type: string
+          p_identifier: string
           p_max_attempts?: number
           p_window_minutes?: number
         }
@@ -1153,31 +1153,31 @@ export type Database = {
         Returns: undefined
       }
       clear_conversation: {
-        Args: { p_user_id: string; p_other_user_id: string }
+        Args: { p_other_user_id: string; p_user_id: string }
         Returns: undefined
       }
       edit_message: {
-        Args: { p_message_id: string; p_user_id: string; p_new_content: string }
+        Args: { p_message_id: string; p_new_content: string; p_user_id: string }
         Returns: undefined
       }
       extract_message_links: {
-        Args: { p_message_id: string; p_content: string }
+        Args: { p_content: string; p_message_id: string }
         Returns: undefined
       }
       get_chat_users: {
         Args: { p_user_id: string }
         Returns: {
-          id: string
-          username: string
           avatar_url: string
+          id: string
+          is_online: boolean
           last_message: string
           last_message_at: string
           unread_count: number
-          is_online: boolean
+          username: string
         }[]
       }
       get_conversation_settings: {
-        Args: { p_user_id: string; p_other_user_id: string }
+        Args: { p_other_user_id: string; p_user_id: string }
         Returns: Json
       }
       get_or_create_conversation_key: {
@@ -1187,8 +1187,8 @@ export type Database = {
       get_reaction_counts_by_post: {
         Args: { post_id: string }
         Returns: {
-          type: string
           count: number
+          type: string
         }[]
       }
       get_total_reactions_count: {
@@ -1198,13 +1198,13 @@ export type Database = {
       get_user_groups: {
         Args: { p_user_id: string }
         Returns: {
-          id: string
-          name: string
-          description: string
           avatar_url: string
-          member_count: number
+          description: string
+          id: string
           last_message: string
           last_message_at: string
+          member_count: number
+          name: string
           unread_count: number
         }[]
       }
@@ -1214,21 +1214,21 @@ export type Database = {
       }
       log_push_notification: {
         Args: {
-          p_user_id: string
+          p_body: string
+          p_data?: Json
           p_subscription_id: string
           p_title: string
-          p_body: string
           p_type?: string
-          p_data?: Json
+          p_user_id: string
         }
         Returns: string
       }
       manage_user_sessions: {
         Args: {
-          p_user_id: string
-          p_session_token: string
           p_device_info?: string
           p_ip_address?: unknown
+          p_session_token: string
+          p_user_id: string
         }
         Returns: undefined
       }
@@ -1259,10 +1259,10 @@ export type Database = {
       search_users: {
         Args: { search_term: string }
         Returns: {
-          id: string
-          username: string
           avatar_url: string
+          id: string
           is_friend: boolean
+          username: string
         }[]
       }
       send_friend_request: {
@@ -1276,32 +1276,32 @@ export type Database = {
       toggle_message_reaction: {
         Args: {
           p_message_id: string
-          p_user_id: string
           p_reaction_type: string
+          p_user_id: string
         }
         Returns: Json
       }
       toggle_reaction: {
-        Args: { p_post_id: string; p_user_id: string; p_reaction_type: string }
+        Args: { p_post_id: string; p_reaction_type: string; p_user_id: string }
         Returns: Json
       }
       update_conversation_settings: {
-        Args: { p_user_id: string; p_other_user_id: string; p_settings: Json }
+        Args: { p_other_user_id: string; p_settings: Json; p_user_id: string }
         Returns: undefined
       }
       update_typing_status: {
         Args: {
-          p_user_id: string
           p_conversation_with_user_id: string
           p_is_typing: boolean
+          p_user_id: string
         }
         Returns: undefined
       }
       update_user_presence: {
         Args: {
-          p_user_id: string
-          p_status: string
           p_conversation_id?: string
+          p_status: string
+          p_user_id: string
         }
         Returns: undefined
       }
