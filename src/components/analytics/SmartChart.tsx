@@ -27,31 +27,29 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
       };
     }
 
-    let finalChartData;
+    let candleData;
     let accumulatedValue = 0;
 
     if (timeRange === "individual") {
-      // Individual transactions as candlesticks
+      // Individual transactions as candlesticks - like a trading platform
       const sortedTransactions = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
-      finalChartData = [
-        ["Data", "Baixo", "Abertura", "Fechamento", "Alto"],
-        ...sortedTransactions.map((t, index) => {
-          const previousValue = index > 0 ? accumulatedValue : 0;
-          accumulatedValue += t.amount;
-          
-          const open = previousValue;
-          const close = accumulatedValue;
-          const low = Math.min(open, close);
-          const high = Math.max(open, close);
-          
-          const dateFormatted = format(parseISO(t.date), "dd/MM HH:mm", { locale: ptBR });
-          return [dateFormatted, low, open, close, high];
-        })
-      ];
+      candleData = sortedTransactions.map((t, index) => {
+        const previousValue = accumulatedValue;
+        accumulatedValue += t.amount;
+        
+        const open = previousValue;
+        const close = accumulatedValue;
+        const low = Math.min(open, close);
+        const high = Math.max(open, close);
+        
+        const dateFormatted = format(parseISO(t.date), "dd/MM HH:mm", { locale: ptBR });
+        return [dateFormatted, low, open, close, high];
+      });
     } else {
       // Grouped transactions by time range
       const processedTransactions: Array<{ date: string; amount: number; accumulated: number }> = [];
+      accumulatedValue = 0;
 
       transactions.forEach((t) => {
         let dateFormatted;
@@ -60,7 +58,7 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
             dateFormatted = format(startOfDay(parseISO(t.date)), "dd/MM", { locale: ptBR });
             break;
           case "weekly":
-            dateFormatted = format(startOfWeek(parseISO(t.date), { locale: ptBR }), "dd/MM/yyyy", { locale: ptBR });
+            dateFormatted = format(startOfWeek(parseISO(t.date), { locale: ptBR }), "dd/MM", { locale: ptBR });
             break;
           case "monthly":
             dateFormatted = format(startOfMonth(parseISO(t.date)), "MM/yyyy", { locale: ptBR });
@@ -76,31 +74,36 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
         
         if (existingTransaction) {
           existingTransaction.amount += t.amount;
-          existingTransaction.accumulated += t.amount;
         } else {
-          accumulatedValue += t.amount;
           processedTransactions.push({ 
             date: dateFormatted, 
             amount: t.amount,
-            accumulated: accumulatedValue 
+            accumulated: 0
           });
         }
       });
 
-      finalChartData = [
-        ["Data", "Baixo", "Abertura", "Fechamento", "Alto"],
-        ...processedTransactions.map((t, index) => {
-          const previousValue = index > 0 ? processedTransactions[index - 1].accumulated : 0;
-          const open = previousValue;
-          const close = t.accumulated;
-          const low = Math.min(open, close);
-          const high = Math.max(open, close);
-          return [t.date, low, open, close, high];
-        })
-      ];
+      // Calculate accumulated values and create candles
+      candleData = processedTransactions.map((t, index) => {
+        const previousValue = accumulatedValue;
+        accumulatedValue += t.amount;
+        
+        const open = previousValue;
+        const close = accumulatedValue;
+        const low = Math.min(open, close);
+        const high = Math.max(open, close);
+        
+        return [t.date, low, open, close, high];
+      });
     }
 
-    // Separate goals into resistance and support levels
+    // Base chart data structure
+    let chartData = [
+      ["Data", "Baixo", "Abertura", "Fechamento", "Alto"],
+      ...candleData
+    ];
+
+    // Add goal lines as additional series
     const resistanceGoals = goals.filter(goal => 
       ['savings_rate', 'emergency_fund', 'investment_goal', 'purchase_goal'].includes(goal.goal_type)
     );
@@ -109,74 +112,111 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
       ['spending_limit', 'category_budget'].includes(goal.goal_type)
     );
 
-    // Add resistance lines (red - goals to reach above current level)
-    resistanceGoals.forEach((goal, index) => {
-      const columnName = `Resistência: ${goal.description || goal.goal_type}`;
-      finalChartData[0].push(columnName);
-      
-      for (let i = 1; i < finalChartData.length; i++) {
-        finalChartData[i].push(goal.amount);
-      }
+    // Add columns for each goal line
+    resistanceGoals.forEach((goal) => {
+      chartData[0].push(`🔴 ${goal.description || 'Resistência'}`);
+    });
+    
+    supportGoals.forEach((goal) => {
+      chartData[0].push(`🟢 ${goal.description || 'Suporte'}`);
     });
 
-    // Add support lines (green - spending limits below current level)
-    supportGoals.forEach((goal, index) => {
-      const columnName = `Suporte: ${goal.description || goal.goal_type}`;
-      finalChartData[0].push(columnName);
+    // Add goal values to each data row
+    for (let i = 1; i < chartData.length; i++) {
+      // Add resistance values (positive targets above current value)
+      resistanceGoals.forEach((goal) => {
+        chartData[i].push(Math.abs(goal.amount));
+      });
       
-      for (let i = 1; i < finalChartData.length; i++) {
-        finalChartData[i].push(-Math.abs(goal.amount));
-      }
+      // Add support values (negative limits as floor protection)  
+      supportGoals.forEach((goal) => {
+        chartData[i].push(-Math.abs(goal.amount));
+      });
+    }
+
+    const seriesConfig: any = {};
+    let seriesIndex = 0;
+
+    // Configure resistance lines (red dashed lines above)
+    resistanceGoals.forEach((goal, index) => {
+      seriesConfig[seriesIndex] = {
+        type: 'line',
+        color: '#dc2626',
+        lineWidth: 3,
+        lineDashStyle: [8, 4],
+        pointSize: 0,
+        visibleInLegend: true,
+        labelInLegend: `🔴 Resistência: ${goal.description || goal.goal_type}`
+      };
+      seriesIndex++;
+    });
+
+    // Configure support lines (green dashed lines below)
+    supportGoals.forEach((goal, index) => {
+      seriesConfig[seriesIndex] = {
+        type: 'line',
+        color: '#16a34a',
+        lineWidth: 3,
+        lineDashStyle: [8, 4],
+        pointSize: 0,
+        visibleInLegend: true,
+        labelInLegend: `🟢 Suporte: ${goal.description || goal.goal_type}`
+      };
+      seriesIndex++;
     });
 
     const options = {
-      legend: { position: 'top', alignment: 'start' },
+      legend: { 
+        position: 'top', 
+        alignment: 'start',
+        textStyle: { fontSize: 12 }
+      },
       backgroundColor: "transparent",
-      chartArea: { width: "85%", height: "70%" },
+      chartArea: { width: "90%", height: "75%", top: 60 },
       vAxis: {
-        title: "Valor Acumulado (R$)",
-        format: "decimal",
-        gridlines: { color: "#f0f0f0" },
+        title: "Saldo Acumulado (R$)",
+        titleTextStyle: { fontSize: 12 },
+        textStyle: { fontSize: 11 },
+        format: "currency",
+        gridlines: { 
+          color: "#e5e7eb",
+          count: 8
+        },
+        minorGridlines: {
+          color: "#f3f4f6",
+          count: 1
+        }
       },
       hAxis: {
-        title: timeRange === "individual" ? "Transações" : "Período",
-        gridlines: { color: "#f0f0f0" },
+        title: timeRange === "individual" ? "Transações Sequenciais" : "Período",
+        titleTextStyle: { fontSize: 12 },
+        textStyle: { fontSize: 10 },
         slantedText: timeRange === "individual",
-        slantedTextAngle: 45,
+        slantedTextAngle: timeRange === "individual" ? 30 : 0,
+        gridlines: { color: "#e5e7eb" }
       },
       candlestick: {
-        fallingColor: { strokeWidth: 2, fill: "#ef4444" },
-        risingColor: { strokeWidth: 2, fill: "#22c55e" },
+        fallingColor: { 
+          strokeWidth: 2, 
+          fill: "#dc2626", 
+          stroke: "#b91c1c"
+        },
+        risingColor: { 
+          strokeWidth: 2, 
+          fill: "#16a34a", 
+          stroke: "#15803d"
+        },
+        hollowIsRising: false
       },
-      series: {}
+      series: seriesConfig,
+      crosshair: { 
+        trigger: 'both',
+        orientation: 'both'
+      }
     };
 
-    // Configure resistance lines (red)
-    resistanceGoals.forEach((goal, index) => {
-      options.series[5 + index] = {
-        type: 'line',
-        color: '#ef4444',
-        lineWidth: 2,
-        lineDashStyle: [10, 5],
-        pointSize: 0,
-        visibleInLegend: true,
-      };
-    });
-
-    // Configure support lines (green)
-    supportGoals.forEach((goal, index) => {
-      options.series[5 + resistanceGoals.length + index] = {
-        type: 'line',
-        color: '#22c55e',
-        lineWidth: 2,
-        lineDashStyle: [10, 5],
-        pointSize: 0,
-        visibleInLegend: true,
-      };
-    });
-
     return {
-      chartData: finalChartData,
+      chartData,
       chartOptions: options
     };
   }, [transactions, goals, chartType, timeRange]);
