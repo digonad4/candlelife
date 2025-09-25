@@ -27,14 +27,17 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
       };
     }
 
+    // Limit to last 100 transactions for performance
+    const limitedTransactions = [...transactions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 100)
+      .reverse();
+
     let candleData;
     let accumulatedValue = 0;
 
     if (timeRange === "individual") {
-      // Individual transactions as candlesticks - like a trading platform
-      const sortedTransactions = [...transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      candleData = sortedTransactions.map((t, index) => {
+      candleData = limitedTransactions.map((t) => {
         const previousValue = accumulatedValue;
         accumulatedValue += t.amount;
         
@@ -47,11 +50,10 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
         return [dateFormatted, low, open, close, high];
       });
     } else {
-      // Grouped transactions by time range
-      const processedTransactions: Array<{ date: string; amount: number; accumulated: number }> = [];
+      const processedTransactions: Array<{ date: string; amount: number }> = [];
       accumulatedValue = 0;
 
-      transactions.forEach((t) => {
+      limitedTransactions.forEach((t) => {
         let dateFormatted;
         switch (timeRange) {
           case "daily":
@@ -78,13 +80,11 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
           processedTransactions.push({ 
             date: dateFormatted, 
             amount: t.amount,
-            accumulated: 0
           });
         }
       });
 
-      // Calculate accumulated values and create candles
-      candleData = processedTransactions.map((t, index) => {
+      candleData = processedTransactions.map((t) => {
         const previousValue = accumulatedValue;
         accumulatedValue += t.amount;
         
@@ -97,128 +97,94 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
       });
     }
 
-    // Base chart data structure
     let chartData = [
       ["Data", "Baixo", "Abertura", "Fechamento", "Alto"],
       ...candleData
     ];
 
-    // Add goal lines as additional series
-    const resistanceGoals = goals.filter(goal => 
+    const investmentGoals = goals.filter(goal => 
       ['savings_rate', 'emergency_fund', 'investment_goal', 'purchase_goal'].includes(goal.goal_type)
     );
     
-    const supportGoals = goals.filter(goal => 
+    const spendingGoals = goals.filter(goal => 
       ['spending_limit', 'category_budget'].includes(goal.goal_type)
     );
 
-    // Add columns for each goal line
-    resistanceGoals.forEach((goal) => {
-      chartData[0].push(`🔴 ${goal.description || 'Resistência'}`);
+    // Add goal columns
+    investmentGoals.forEach((goal) => {
+      chartData[0].push(`🔵 ${goal.description || 'Meta Investimento'}`);
     });
     
-    supportGoals.forEach((goal) => {
-      chartData[0].push(`🟢 ${goal.description || 'Suporte'}`);
+    spendingGoals.forEach((goal) => {
+      chartData[0].push(`🟠 ${goal.description || 'Limite Gasto'}`);
     });
 
-    // Add goal values to each data row
+    // Add goal values
     for (let i = 1; i < chartData.length; i++) {
-      // Add resistance values (positive targets above current value)
-      resistanceGoals.forEach((goal) => {
-        chartData[i].push(Math.abs(goal.amount));
+      const currentAccumulated = chartData[i][4];
+      
+      investmentGoals.forEach((goal) => {
+        const resistanceLevel = currentAccumulated + Math.abs(goal.amount);
+        chartData[i].push(resistanceLevel);
       });
       
-      // Add support values (negative limits as floor protection)  
-      supportGoals.forEach((goal) => {
-        chartData[i].push(-Math.abs(goal.amount));
+      spendingGoals.forEach((goal) => {
+        const supportLevel = currentAccumulated - Math.abs(goal.amount);
+        chartData[i].push(supportLevel);
       });
     }
 
     const seriesConfig: any = {};
     let seriesIndex = 0;
 
-    // Configure resistance lines (red dashed lines above)
-    resistanceGoals.forEach((goal, index) => {
+    investmentGoals.forEach(() => {
       seriesConfig[seriesIndex] = {
         type: 'line',
-        color: '#dc2626',
-        lineWidth: 3,
-        lineDashStyle: [8, 4],
+        color: '#2563eb',
+        lineWidth: 2,
+        lineDashStyle: [10, 5],
         pointSize: 0,
         visibleInLegend: true,
-        labelInLegend: `🔴 Resistência: ${goal.description || goal.goal_type}`
       };
       seriesIndex++;
     });
 
-    // Configure support lines (green dashed lines below)
-    supportGoals.forEach((goal, index) => {
+    spendingGoals.forEach(() => {
       seriesConfig[seriesIndex] = {
         type: 'line',
-        color: '#16a34a',
-        lineWidth: 3,
-        lineDashStyle: [8, 4],
+        color: '#ea580c',
+        lineWidth: 2,
+        lineDashStyle: [10, 5],
         pointSize: 0,
         visibleInLegend: true,
-        labelInLegend: `🟢 Suporte: ${goal.description || goal.goal_type}`
       };
       seriesIndex++;
     });
 
     const options = {
-      legend: { 
-        position: 'top', 
-        alignment: 'start',
-        textStyle: { fontSize: 12 }
-      },
+      legend: { position: 'top', alignment: 'start' },
       backgroundColor: "transparent",
       chartArea: { width: "90%", height: "75%", top: 60 },
       vAxis: {
         title: "Saldo Acumulado (R$)",
-        titleTextStyle: { fontSize: 12 },
-        textStyle: { fontSize: 11 },
         format: "currency",
-        gridlines: { 
-          color: "#e5e7eb",
-          count: 8
-        },
-        minorGridlines: {
-          color: "#f3f4f6",
-          count: 1
-        }
-      },
-      hAxis: {
-        title: timeRange === "individual" ? "Transações Sequenciais" : "Período",
-        titleTextStyle: { fontSize: 12 },
-        textStyle: { fontSize: 10 },
-        slantedText: timeRange === "individual",
-        slantedTextAngle: timeRange === "individual" ? 30 : 0,
         gridlines: { color: "#e5e7eb" }
       },
+      hAxis: {
+        title: timeRange === "individual" ? "Transações" : "Período",
+        slantedText: timeRange === "individual",
+        slantedTextAngle: 30
+      },
       candlestick: {
-        fallingColor: { 
-          strokeWidth: 2, 
-          fill: "#dc2626", 
-          stroke: "#b91c1c"
-        },
-        risingColor: { 
-          strokeWidth: 2, 
-          fill: "#16a34a", 
-          stroke: "#15803d"
-        },
+        fallingColor: { strokeWidth: 0, fill: "#dc2626", stroke: "transparent" },
+        risingColor: { strokeWidth: 0, fill: "#16a34a", stroke: "transparent" },
         hollowIsRising: false
       },
       series: seriesConfig,
-      crosshair: { 
-        trigger: 'both',
-        orientation: 'both'
-      }
+      crosshair: { trigger: 'both', orientation: 'both' }
     };
 
-    return {
-      chartData,
-      chartOptions: options
-    };
+    return { chartData, chartOptions: options };
   }, [transactions, goals, chartType, timeRange]);
 
   if (isLoading) {
@@ -234,43 +200,22 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
       <div className="text-center py-8">
         <div className="text-muted-foreground">
           <p>📊 Nenhuma transação encontrada</p>
-          <p className="text-sm mt-2">Adicione transações para visualizar análises inteligentes</p>
+          <p className="text-sm mt-2">Adicione transações para visualizar análises</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <Chart
         width="100%"
         height="100%"
         chartType={chartType}
-        loader={<div className="text-center py-4">Carregando Gráfico Inteligente...</div>}
+        loader={<div className="text-center py-4">Carregando...</div>}
         data={chartData}
         options={chartOptions}
       />
-      
-      {/* Goal indicators */}
-      {goals.length > 0 && (
-        <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-lg p-2 text-xs">
-          <div className="font-medium text-muted-foreground mb-1">Metas Ativas:</div>
-          {goals.slice(0, 3).map((goal, index) => (
-            <div key={goal.id} className="flex items-center gap-1 mb-1">
-              <div 
-                className="w-2 h-2 rounded-full" 
-                style={{ backgroundColor: goal.goal_type === 'spending_limit' ? '#ef4444' : '#22c55e' }}
-              />
-              <span className="truncate max-w-[120px]">
-                {goal.description || goal.goal_type}
-              </span>
-            </div>
-          ))}
-          {goals.length > 3 && (
-            <div className="text-muted-foreground">+{goals.length - 3} mais</div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

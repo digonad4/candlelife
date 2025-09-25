@@ -1,7 +1,7 @@
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Outlet } from "react-router-dom";
-import { MobileBottomNavigation } from "./MobileBottomNavigation";
+import { ProfessionalMobileNav } from "./ProfessionalMobileNav";
 import { Footer } from "./Footer";
 import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner";
 import { GlobalNotificationCenter } from "@/components/notifications/GlobalNotificationCenter";
@@ -69,7 +69,7 @@ const AppLayout = () => {
       </div>
       
       {/* Mobile Bottom Navigation - hide on chat pages */}
-      {isMobile && !isChatPage && <MobileBottomNavigation />}
+      {isMobile && !isChatPage && <ProfessionalMobileNav />}
       
       {/* Notification Permission Banner */}
       <NotificationPermissionBanner />
