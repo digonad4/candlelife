@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      chart_goals: {
+        Row: {
+          alert_triggered: boolean
+          chart_position: Json | null
+          created_at: string
+          goal_type: string
+          id: string
+          is_active: boolean
+          label: string | null
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          alert_triggered?: boolean
+          chart_position?: Json | null
+          created_at?: string
+          goal_type: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          alert_triggered?: boolean
+          chart_position?: Json | null
+          created_at?: string
+          goal_type?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       chat_groups: {
         Row: {
           avatar_url: string | null

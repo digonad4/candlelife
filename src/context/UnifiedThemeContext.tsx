@@ -30,7 +30,7 @@ export const useUnifiedTheme = () => {
 export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const [theme, setThemeState] = useState<Theme>(
-    () => (localStorage.getItem("theme") as Theme) || "light"
+    () => (localStorage.getItem("theme") as Theme) || "supabase"
   );
   const [isUpdating, setIsUpdating] = useState(false);
   const [appliedTheme, setAppliedTheme] = useState<Theme>(theme);
