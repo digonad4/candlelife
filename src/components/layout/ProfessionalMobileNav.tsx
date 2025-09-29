@@ -66,12 +66,6 @@ export const ProfessionalMobileNav = () => {
       gradient: "from-amber-500 to-orange-600"
     },
     { 
-      icon: TrendingUp, 
-      label: "Analytics", 
-      href: "/analytics",
-      gradient: "from-indigo-500 to-purple-600"
-    },
-    { 
       icon: MessageSquare, 
       label: "Chat", 
       href: "/chat",

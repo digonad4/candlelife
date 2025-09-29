@@ -231,40 +231,80 @@ export function InteractiveSmartChart({
     const maxValue = lastValue + chartMargin;
 
     const options = {
-      legend: { position: 'top', alignment: 'start' },
-      backgroundColor: "transparent",
-      chartArea: { width: "95%", height: "85%", top: 60, left: 80, right: 20 },
+      backgroundColor: '#0f1419',
+      chartArea: { 
+        width: "90%", 
+        height: "90%", 
+        top: "8%", 
+        left: "8%", 
+        right: "2%", 
+        bottom: "2%" 
+      },
       vAxis: {
-        title: "Saldo Acumulado (R$)",
-        format: "currency",
-        gridlines: { 
-          color: "#e5e7eb", 
-          count: 8 
+        textStyle: { 
+          color: '#8c9196',
+          fontSize: 11
         },
+        format: 'currency',
+        gridlines: { 
+          color: '#1e2329',
+          count: 6
+        },
+        minorGridlines: {
+          color: 'transparent'
+        },
+        baselineColor: '#2b3139',
         viewWindow: {
           min: minValue,
           max: maxValue
         }
       },
       hAxis: {
-        title: timeRange === "individual" ? "Transações" : "Período",
+        textStyle: { 
+          color: '#8c9196',
+          fontSize: 11
+        },
         slantedText: timeRange === "individual",
         slantedTextAngle: 30,
-        gridlines: { color: "#f3f4f6" }
+        gridlines: { 
+          color: '#1e2329',
+          count: 8
+        },
+        minorGridlines: {
+          color: 'transparent'
+        },
+        baselineColor: '#2b3139'
       },
-      candlestick: {
-        fallingColor: { strokeWidth: 0, fill: "#dc2626", stroke: "transparent" },
-        risingColor: { strokeWidth: 0, fill: "#16a34a", stroke: "transparent" },
-        hollowIsRising: false
+      legend: {
+        position: 'none'
       },
-      series: seriesConfig,
-      crosshair: { trigger: 'both', orientation: 'both' },
+      crosshair: {
+        trigger: 'both',
+        orientation: 'both',
+        color: '#ffd700',
+        opacity: 0.7
+      },
       explorer: {
         actions: ['dragToZoom', 'rightClickToReset'],
         axis: 'horizontal',
         keepInBounds: true,
-        maxZoomIn: 4.0
-      }
+        maxZoomIn: 10.0,
+        maxZoomOut: 1.0,
+        zoomDelta: 1.1
+      },
+      candlestick: {
+        fallingColor: { 
+          strokeWidth: 1, 
+          fill: '#f6465d',
+          stroke: '#f6465d'
+        },
+        risingColor: { 
+          strokeWidth: 1, 
+          fill: '#0ecb81',
+          stroke: '#0ecb81'
+        }
+      },
+      series: seriesConfig
     };
 
     return { chartData, chartOptions: options };
