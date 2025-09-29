@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/drawer";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { FloatingActionButton } from "./FloatingActionButton";
 
 export const ProfessionalMobileNav = () => {
   const location = useLocation();
@@ -65,6 +66,12 @@ export const ProfessionalMobileNav = () => {
       gradient: "from-amber-500 to-orange-600"
     },
     { 
+      icon: TrendingUp, 
+      label: "Analytics", 
+      href: "/analytics",
+      gradient: "from-indigo-500 to-purple-600"
+    },
+    { 
       icon: MessageSquare, 
       label: "Chat", 
       href: "/chat",
@@ -77,7 +84,6 @@ export const ProfessionalMobileNav = () => {
   const secondaryNavItems = [
     { icon: Users, label: "Clientes", href: "/clients" },
     { icon: Globe, label: "Comunidade", href: "/social" },
-    { icon: TrendingUp, label: "Analytics", href: "/analytics" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
     { icon: Settings, label: "Configurações", href: "/settings" },
@@ -110,15 +116,7 @@ export const ProfessionalMobileNav = () => {
   return (
     <>
       {/* Floating Action Button */}
-      <Button 
-        className="floating-action"
-        onClick={() => {
-          hapticFeedback('light');
-          // Navigate to add transaction or show quick actions
-        }}
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+      <FloatingActionButton />
 
       {/* Professional Bottom Navigation */}
       <div className={`fixed bottom-0 left-0 right-0 z-40 mobile-nav-modern ${

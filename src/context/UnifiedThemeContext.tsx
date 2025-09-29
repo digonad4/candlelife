@@ -29,11 +29,26 @@ export const useUnifiedTheme = () => {
 
 export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
-  const [theme, setThemeState] = useState<Theme>(
-    () => (localStorage.getItem("theme") as Theme) || "supabase"
-  );
+  const [theme, setThemeState] = useState<Theme>("supabase");
   const [isUpdating, setIsUpdating] = useState(false);
   const [appliedTheme, setAppliedTheme] = useState<Theme>(theme);
+
+  // Initialize and load theme
+  useEffect(() => {
+    const initializeTheme = () => {
+      const savedTheme = localStorage.getItem("theme") as Theme;
+      const defaultTheme: Theme = "supabase";
+      
+      if (!savedTheme) {
+        setThemeState(defaultTheme);
+        localStorage.setItem("theme", defaultTheme);
+      } else {
+        setThemeState(savedTheme);
+      }
+    };
+
+    initializeTheme();
+  }, []);
 
   // Load user's theme preference from Supabase when signed in
   useEffect(() => {
@@ -53,27 +68,23 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
           
           if (data && data.theme_name) {
             const userTheme = data.theme_name as Theme;
-            // Só atualiza se for diferente do tema atual do localStorage
-            const currentTheme = localStorage.getItem("theme") as Theme;
-            if (currentTheme !== userTheme) {
-              setThemeState(userTheme);
-              localStorage.setItem("theme", userTheme);
-            }
+            setThemeState(userTheme);
+            localStorage.setItem("theme", userTheme);
+          } else {
+            // First time user - set default theme
+            const defaultTheme: Theme = "supabase";
+            setThemeState(defaultTheme);
+            localStorage.setItem("theme", defaultTheme);
           }
         } catch (error) {
           console.error("Error loading user theme:", error);
         }
       }
-      // Quando o usuário faz logout (user === null), mantém o tema do localStorage
-      else {
-        const savedTheme = localStorage.getItem("theme") as Theme;
-        if (savedTheme && savedTheme !== theme) {
-          setThemeState(savedTheme);
-        }
-      }
     };
 
-    loadUserTheme();
+    if (user) {
+      loadUserTheme();
+    }
   }, [user]);
 
   // Resolve system theme

@@ -224,19 +224,33 @@ export function InteractiveSmartChart({
       seriesIndex++;
     });
 
+    // Calculate chart center based on last value
+    const lastValue = candleData.length > 0 ? candleData[candleData.length - 1][4] : 0;
+    const chartMargin = Math.abs(lastValue) * 0.5; // 50% margin above and below
+    const minValue = lastValue - chartMargin;
+    const maxValue = lastValue + chartMargin;
+
     const options = {
       legend: { position: 'top', alignment: 'start' },
       backgroundColor: "transparent",
-      chartArea: { width: "90%", height: "75%", top: 60 },
+      chartArea: { width: "95%", height: "85%", top: 60, left: 80, right: 20 },
       vAxis: {
         title: "Saldo Acumulado (R$)",
         format: "currency",
-        gridlines: { color: "#e5e7eb" }
+        gridlines: { 
+          color: "#e5e7eb", 
+          count: 8 
+        },
+        viewWindow: {
+          min: minValue,
+          max: maxValue
+        }
       },
       hAxis: {
         title: timeRange === "individual" ? "Transações" : "Período",
         slantedText: timeRange === "individual",
-        slantedTextAngle: 30
+        slantedTextAngle: 30,
+        gridlines: { color: "#f3f4f6" }
       },
       candlestick: {
         fallingColor: { strokeWidth: 0, fill: "#dc2626", stroke: "transparent" },
@@ -244,7 +258,13 @@ export function InteractiveSmartChart({
         hollowIsRising: false
       },
       series: seriesConfig,
-      crosshair: { trigger: 'both', orientation: 'both' }
+      crosshair: { trigger: 'both', orientation: 'both' },
+      explorer: {
+        actions: ['dragToZoom', 'rightClickToReset'],
+        axis: 'horizontal',
+        keepInBounds: true,
+        maxZoomIn: 4.0
+      }
     };
 
     return { chartData, chartOptions: options };
@@ -255,7 +275,17 @@ export function InteractiveSmartChart({
       const chart = event.chartWrapper.getChart();
       const selection = chart.getSelection();
       
-      if (selection && selection.length > 0) {
+      // If no data point is selected, we can create a goal at chart center
+      if (!selection || selection.length === 0) {
+        // Get the last accumulated value as reference
+        const lastValue = chartData.length > 1 ? (chartData[chartData.length - 1][4] as number) : 0;
+        const margin = Math.abs(lastValue) * 0.3; // 30% above current value for default goal
+        const suggestedValue = Math.round((lastValue + margin) / 100) * 100; // Round to nearest 100
+        
+        setClickedValue(suggestedValue);
+        setShowGoalModal(true);
+      } else {
+        // If a data point is selected, use its value
         const selectedItem = selection[0];
         if (selectedItem.row !== undefined && selectedItem.row !== null) {
           const rowData = chartData[selectedItem.row + 1]; // +1 because header is index 0
@@ -310,7 +340,7 @@ export function InteractiveSmartChart({
       />
       
       <div className="absolute top-2 right-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
-        💡 Clique em qualquer ponto para definir uma meta visual
+        🎯 Clique em área vazia para definir meta | 🔍 Arraste para zoom
       </div>
 
       <ChartGoalModal
