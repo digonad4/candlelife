@@ -13,16 +13,26 @@ interface TransactionData {
 interface InteractiveSmartChartProps {
   transactions: TransactionData[];
   financialGoals: FinancialGoal[];
-  chartType: any;
-  timeRange: string;
+  chartType: any; // Mantido como 'any' para o tipo de gráfico (CandlestickChart)
+  timeRange: "individual" | "daily" | "weekly" | "monthly" | "yearly";
   isLoading?: boolean;
   onCreateChartGoal?: (data: { goal_type: "support" | "resistance"; value: number; label?: string }) => void;
+}
+
+// Tipo para os dados de vela/ponto, incluindo o valor acumulado antes (Open) e depois (Close)
+interface AccumulationCandle {
+  key: string; // Data ou Período
+  open: number; // Acumulado no início do período
+  close: number; // Acumulado no fim do período
+  low: number; // Mínimo no período
+  high: number; // Máximo no período
+  amount: number; // Total da transação no período (para o caso individual)
 }
 
 export function InteractiveSmartChart({
   transactions,
   financialGoals,
-  chartType,
+  chartType, // Não usado diretamente, mas mantido na interface
   timeRange,
   isLoading,
   onCreateChartGoal,
@@ -35,90 +45,78 @@ export function InteractiveSmartChart({
       return { chartData: [], chartOptions: {} };
     }
 
-    // Remover limite artificial de 100 transações
+    // 1. Preparação e Ordenação
     const sortedTransactions = [...transactions].sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
-    // Função para preencher datas faltantes com DOJIS
-    const fillMissingDatesWithDojis = (transactions: TransactionData[]) => {
+    // 2. Preencher datas faltantes e calcular acumulação ponto a ponto
+    const getAccumulatedData = (transactions: TransactionData[]) => {
       if (transactions.length === 0) return [];
       
       const firstDate = new Date(transactions[0].date);
       const lastDate = new Date(transactions[transactions.length - 1].date);
-      const filledData: TransactionData[] = [];
+      
+      const detailedAccumulation: AccumulationCandle[] = [];
+      const transactionMap = new Map<string, number>();
+      transactions.forEach(t => {
+        // Se houver múltiplas transações no mesmo dia, somar os valores
+        transactionMap.set(t.date, (transactionMap.get(t.date) || 0) + t.amount);
+      });
       
       let accumulated = 0;
       let currentDate = new Date(firstDate);
-      let transactionIndex = 0;
       
       while (currentDate <= lastDate) {
         const dateStr = currentDate.toISOString().split('T')[0];
-        const transaction = transactions[transactionIndex];
+        const dailyAmount = transactionMap.get(dateStr) || 0;
         
-        if (transaction && transaction.date === dateStr) {
-          accumulated += transaction.amount;
-          filledData.push({ date: dateStr, amount: transaction.amount });
-          transactionIndex++;
-        } else {
-          // DOJI - dia sem transação (open === close)
-          filledData.push({ date: dateStr, amount: 0 });
-        }
+        const open = accumulated;
+        accumulated += dailyAmount;
+        const close = accumulated;
+        
+        // Em um dia sem transação (DOJI), Open=Close=Low=High=acumulado
+        // Em um dia com transação, Low/High são min/max entre Open e Close
+        const low = dailyAmount === 0 ? open : Math.min(open, close);
+        const high = dailyAmount === 0 ? open : Math.max(open, close);
+
+        detailedAccumulation.push({
+          key: dateStr,
+          open,
+          close,
+          low,
+          high,
+          amount: dailyAmount
+        });
         
         currentDate.setDate(currentDate.getDate() + 1);
       }
       
-      return filledData;
+      return detailedAccumulation;
     };
 
-    const filledTransactions = fillMissingDatesWithDojis(sortedTransactions);
+    const detailedAccumulation = getAccumulatedData(sortedTransactions);
     
-    // Processar dados baseado no timeRange
-    let candleData: any[] = [];
-    let accumulated = 0;
+    // 3. Processar dados baseado no timeRange
+    let finalCandleData: AccumulationCandle[] = [];
     
     if (timeRange === "individual") {
-      filledTransactions.forEach(t => {
-        const prevAccumulated = accumulated;
-        accumulated += t.amount;
-        
-        if (t.amount === 0) {
-          // DOJI: open === close, low === high (linha horizontal fina)
-          candleData.push([
-            t.date,
-            accumulated, // Low
-            accumulated, // Open
-            accumulated, // Close
-            accumulated  // High
-          ]);
-        } else {
-          // Candle normal
-          const low = Math.min(prevAccumulated, accumulated);
-          const high = Math.max(prevAccumulated, accumulated);
-          candleData.push([
-            t.date,
-            low,
-            prevAccumulated, // Open
-            accumulated,      // Close
-            high
-          ]);
-        }
-      });
+      finalCandleData = detailedAccumulation;
     } else {
       // Agrupar por período (daily, weekly, monthly, yearly)
-      const groupedData: { [key: string]: TransactionData[] } = {};
+      const groupedData: { [key: string]: AccumulationCandle[] } = {};
       
-      filledTransactions.forEach(t => {
-        const date = new Date(t.date);
+      detailedAccumulation.forEach(d => {
+        const date = new Date(d.key);
         let key: string;
         
         switch (timeRange) {
           case "daily":
-            key = t.date;
+            key = d.key; // Se for daily, o detailedAccumulation já serve
             break;
           case "weekly":
             const weekStart = new Date(date);
-            weekStart.setDate(date.getDate() - date.getDay());
+            weekStart.setDate(date.getDate() - date.getDay()); // Início da semana (Domingo)
             key = weekStart.toISOString().split('T')[0];
             break;
           case "monthly":
@@ -128,85 +126,93 @@ export function InteractiveSmartChart({
             key = date.getFullYear().toString();
             break;
           default:
-            key = t.date;
+            key = d.key;
         }
         
         if (!groupedData[key]) groupedData[key] = [];
-        groupedData[key].push(t);
+        groupedData[key].push(d);
       });
 
-      Object.entries(groupedData).forEach(([period, periodTransactions]) => {
-        const periodStart = accumulated;
-        let low = periodStart;
-        let high = periodStart;
-        let open = periodStart;
-        let close = periodStart;
+      // Recalcular as velas para os períodos agrupados
+      Object.entries(groupedData).forEach(([period, periodAccumulations]) => {
+        if (periodAccumulations.length === 0) return;
+
+        // O Open é o 'open' do primeiro ponto do período (que é o 'close' do período anterior)
+        const open = periodAccumulations[0].open;
+        // O Close é o 'close' do último ponto do período
+        const close = periodAccumulations[periodAccumulations.length - 1].close;
         
-        periodTransactions.forEach(t => {
-          accumulated += t.amount;
-          low = Math.min(low, accumulated);
-          high = Math.max(high, accumulated);
-          close = accumulated;
+        // O Low e High são o mínimo/máximo de TODOS os Lows/Highs no período
+        const low = Math.min(...periodAccumulations.map(d => d.low));
+        const high = Math.max(...periodAccumulations.map(d => d.high));
+        
+        // Nota: O google-charts espera a ordem: [período, low, open, close, high]
+        finalCandleData.push({
+          key: period,
+          low,
+          open,
+          close,
+          high,
+          amount: periodAccumulations.reduce((sum, d) => sum + d.amount, 0)
         });
-        
-        if (open === close && low === high) {
-          // DOJI para período
-          candleData.push([period, open, open, open, open]);
-        } else {
-          candleData.push([period, low, open, close, high]);
-        }
       });
+      
+      // Se for agrupado, é bom garantir a ordenação novamente pelas chaves (datas/períodos)
+      finalCandleData.sort((a, b) => a.key.localeCompare(b.key));
     }
 
-    // Metas visuais no gráfico (apenas as marcadas como display_on_chart)
+    // 4. Transformar para o formato do Google Charts
+    // Ordem esperada: [Período, Baixo (Low), Abertura (Open), Fechamento (Close), Alto (High)]
+    const candleDataForChart = finalCandleData.map(d => [d.key, d.low, d.open, d.close, d.high]);
+
+    // 5. Adicionar Metas (Linhas Horizontais)
     const chartGoals = financialGoals.filter(goal => goal.display_on_chart && goal.chart_line_type);
     
     const seriesConfig: any = {};
+    const header = ["Período", "Baixo", "Abertura", "Fechamento", "Alto"];
+    
+    // Adicionar cabeçalhos para as metas (serão a partir do índice 5 - series index 1)
     chartGoals.forEach((goal, index) => {
-      seriesConfig[index + 1] = {
+      header.push(goal.description || `${goal.chart_line_type} R$${goal.target_amount}`);
+      seriesConfig[index] = { // series index é 0-based a partir da 1ª série de linha
         type: "line",
         color: goal.chart_line_type === "resistance" 
-          ? "#00ff88"  // Verde brilhante (meta de acúmulo)
+          ? "#0ecb81"  // Verde (Meta de Acúmulo)
           : goal.chart_line_type === "support"
-          ? "#ff4444"  // Vermelho brilhante (limite mínimo)
-          : "#ff9800", // Laranja (limite de gasto)
+          ? "#f6465d"  // Vermelho (Limite Mínimo)
+          : "#ff9800", // Laranja (Outros)
         lineWidth: 2,
-        lineDashStyle: goal.chart_line_type === "spending_limit" ? [4, 4] : [0],
+        lineDashStyle: goal.chart_line_type === "support" ? [4, 4] : [0], // Linha tracejada para 'support'
         pointSize: 0,
-        visibleInLegend: false
+        visibleInLegend: false,
+        // Usar targetAxisIndex: 0 (Eixo Y principal)
       };
     });
 
-    // Adicionar linhas de metas ao chartData
-    const header = ["Período", "Baixo", "Abertura", "Fechamento", "Alto"];
-    chartGoals.forEach(goal => {
-      header.push(goal.description || `Meta ${goal.chart_line_type}`);
-    });
-    
-    const dataWithGoals = candleData.map(row => {
+    const dataWithGoals = candleDataForChart.map(row => {
       const newRow = [...row];
       chartGoals.forEach(goal => {
-        newRow.push(goal.target_amount);
+        newRow.push(goal.target_amount); // Adiciona o valor da meta
       });
       return newRow;
     });
 
-    // Centralização inteligente baseada em estatística
-    const lastValue = candleData.length > 0 ? candleData[candleData.length - 1][4] : 0;
-    const allHighValues = candleData.map(c => c[4]);
+    // 6. Centralização Inteligente (Ajustado)
+    const lastValue = finalCandleData.length > 0 ? finalCandleData[finalCandleData.length - 1].high : 0;
+    const allValues = finalCandleData.flatMap(c => [c.low, c.high]);
     
-    // Calcular média e desvio padrão
-    const mean = allHighValues.reduce((sum, val) => sum + val, 0) / allHighValues.length;
-    const variance = allHighValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / allHighValues.length;
-    const stdDev = Math.sqrt(variance);
+    const minDataValue = Math.min(0, ...allValues);
+    const maxDataValue = Math.max(lastValue, ...allValues);
     
-    // Margem baseada em 2 desvios padrão (95% dos dados)
-    const margin = stdDev * 2;
-    const minValue = Math.max(0, lastValue - margin);
-    const maxValue = lastValue + margin * 1.5; // Mais espaço acima para metas
+    const range = maxDataValue - minDataValue;
+    const marginRatio = 0.1; // 10% de margem no topo e na base
+    
+    const minValue = Math.max(0, minDataValue - range * marginRatio);
+    const maxValue = maxDataValue + range * marginRatio;
 
+    // 7. Configuração das Opções do Gráfico
     const options = {
-      backgroundColor: '#0a0e27', // Dark navy (estilo TradingView)
+      backgroundColor: '#0a0e27',
       chartArea: { 
         width: "88%", 
         height: "82%", 
@@ -241,7 +247,7 @@ export function InteractiveSmartChart({
           fontSize: 11,
           fontName: 'Roboto Mono'
         },
-        slantedText: timeRange === "individual",
+        slantedText: timeRange === "individual" || timeRange === "daily",
         slantedTextAngle: 30,
         gridlines: { 
           color: '#1a1f3a',
@@ -258,7 +264,7 @@ export function InteractiveSmartChart({
       crosshair: {
         trigger: 'both',
         orientation: 'both',
-        color: '#ffd700', // Dourado
+        color: '#ffd700',
         opacity: 0.8
       },
       explorer: {
@@ -270,20 +276,25 @@ export function InteractiveSmartChart({
         zoomDelta: 1.1
       },
       candlestick: {
-        fallingColor: { 
+        fallingColor: { // Candle de queda (Open > Close)
           strokeWidth: 1, 
-          fill: '#f6465d',
+          fill: '#f6465d', // Vermelho (perda de valor no período)
           stroke: '#f6465d'
         },
-        risingColor: { 
+        risingColor: { // Candle de alta (Close > Open)
           strokeWidth: 1, 
-          fill: '#0ecb81',
+          fill: '#0ecb81', // Verde (ganho de valor no período)
           stroke: '#0ecb81'
         },
-        // Estilo especial para dojis
         hollowIsRising: false
       },
-      series: seriesConfig,
+      // Configuração de séries: a série 0 é o Candlestick, as subsequentes são as linhas de meta
+      series: {
+        0: { type: 'candlestick' },
+        ...Object.fromEntries(
+          chartGoals.map((_, index) => [index + 1, seriesConfig[index]]) // O índice de series começa em 1 para a primeira linha de meta
+        )
+      },
       tooltip: {
         isHtml: true,
         trigger: 'both'
@@ -294,31 +305,42 @@ export function InteractiveSmartChart({
       chartData: [header, ...dataWithGoals], 
       chartOptions: options 
     };
-  }, [transactions, financialGoals, chartType, timeRange]);
+  }, [transactions, financialGoals, timeRange]);
 
   const handleChartClick = useCallback((chartWrapper: any) => {
     if (!onCreateChartGoal) return;
     
     const chart = chartWrapper.getChart();
     const selection = chart.getSelection();
+    const dataTable = chartWrapper.getDataTable();
     
     if (selection && selection.length > 0) {
       const selectedItem = selection[0];
       
       if (selectedItem.row !== null && selectedItem.row !== undefined) {
-        // Clicou em um ponto específico
-        const dataTable = chartWrapper.getDataTable();
-        const highValue = dataTable.getValue(selectedItem.row, 4); // Valor "Alto"
-        setClickedValue(highValue);
-        setShowGoalModal(true);
+        // Clicou em um ponto específico. Se for na vela (colunas 1-4), pegamos o 'High' (coluna 4)
+        const valueColumn = selectedItem.column >= 1 && selectedItem.column <= 4 ? 4 : selectedItem.column;
+        
+        // Se a coluna for uma das metas, pegamos o valor da meta
+        const isGoalColumn = selectedItem.column > 4; 
+        const valueToUse = isGoalColumn 
+          ? dataTable.getValue(selectedItem.row, selectedItem.column)
+          : dataTable.getValue(selectedItem.row, 4); // Pega o High (coluna 4) da vela
+          
+        if (valueToUse !== null) {
+          setClickedValue(Number(valueToUse));
+          setShowGoalModal(true);
+        }
       }
     } else {
-      // Clicou em área vazia - sugerir valor baseado no último ponto
+      // Clicou em área vazia - sugerir valor baseado no último ponto 'High'
       if (chartData && chartData.length > 1) {
         const lastDataPoint = chartData[chartData.length - 1];
-        const lastValue = lastDataPoint[4]; // Valor "Alto"
-        setClickedValue(lastValue);
-        setShowGoalModal(true);
+        const lastValue = lastDataPoint[4]; // Valor "Alto" (High)
+        if (lastValue !== null) {
+          setClickedValue(Number(lastValue));
+          setShowGoalModal(true);
+        }
       }
     }
   }, [chartData, onCreateChartGoal]);
@@ -333,8 +355,8 @@ export function InteractiveSmartChart({
   if (isLoading) {
     return (
       <div className="w-full h-[500px] space-y-4">
-        <Skeleton className="w-full h-full" />
-        <div className="text-center text-sm text-muted-foreground">
+        <Skeleton className="w-full h-full bg-[#1a1f3a]" />
+        <div className="text-center text-sm text-[#8c9196]">
           Carregando gráfico profissional...
         </div>
       </div>
@@ -354,7 +376,7 @@ export function InteractiveSmartChart({
 
   return (
     <div className="w-full space-y-4">
-      <div className="bg-[#0a0e27] rounded-xl border border-[#1a1f3a] p-4">
+      <div className="bg-[#0a0e27] rounded-xl border border-[#1a1f3a] p-1">
         <Chart
           chartType="CandlestickChart"
           width="100%"
@@ -372,8 +394,8 @@ export function InteractiveSmartChart({
       
       {/* Tooltip de instruções */}
       <div className="flex items-center gap-2 text-xs text-[#8c9196] justify-center">
-        <Info className="h-4 w-4" />
-        <span>Clique no gráfico para criar metas visuais | Arraste para zoom | Clique direito para resetar</span>
+        <Info className="h-4 w-4 text-[#8c9196]" />
+     <span>Clique no gráfico (ou vela) para criar metas visuais | Arraste para zoom | Clique direito para resetar</span>
       </div>
 
       {showGoalModal && (
