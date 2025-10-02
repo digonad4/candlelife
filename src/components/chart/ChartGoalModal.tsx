@@ -73,23 +73,23 @@ export function ChartGoalModal({ isOpen, onClose, onCreateGoal, clickedValue }: 
               <RadioGroup value={goalType} onValueChange={(value: "support" | "resistance") => setGoalType(value)} className="mt-2">
                 <div className="flex items-center space-x-3 border rounded-lg p-3 cursor-pointer hover:bg-accent transition-colors">
                   <RadioGroupItem value="support" id="support" />
-                  <Label htmlFor="support" className="flex items-center gap-2 cursor-pointer w-full">
-                    <TrendingDown className="w-4 h-4 text-red-600" />
-                    <div className="flex-1">
-                      <div className="font-medium">Suporte (Teto de Gasto)</div>
-                      <div className="text-xs text-muted-foreground">Alerta se valor cruzar para baixo 📉</div>
-                    </div>
-                  </Label>
+              <Label htmlFor="support" className="flex items-center gap-2 cursor-pointer w-full">
+                <TrendingDown className="w-4 h-4 text-red-600" />
+                <div className="flex-1">
+                  <div className="font-medium">Suporte (Limite Mínimo)</div>
+                  <div className="text-xs text-muted-foreground">Alerta quando valor CAI abaixo da linha ⚠️</div>
+                </div>
+              </Label>
                 </div>
                 <div className="flex items-center space-x-3 border rounded-lg p-3 cursor-pointer hover:bg-accent transition-colors">
                   <RadioGroupItem value="resistance" id="resistance" />
-                  <Label htmlFor="resistance" className="flex items-center gap-2 cursor-pointer w-full">
-                    <TrendingUp className="w-4 h-4 text-green-600" />
-                    <div className="flex-1">
-                      <div className="font-medium">Resistência (Piso de Acúmulo)</div>
-                      <div className="text-xs text-muted-foreground">Alerta se valor cruzar para cima 📈</div>
-                    </div>
-                  </Label>
+              <Label htmlFor="resistance" className="flex items-center gap-2 cursor-pointer w-full">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                <div className="flex-1">
+                  <div className="font-medium">Resistência (Meta de Acúmulo)</div>
+                  <div className="text-xs text-muted-foreground">Alerta quando valor ULTRAPASSA a linha 🎉</div>
+                </div>
+              </Label>
                 </div>
               </RadioGroup>
             </div>

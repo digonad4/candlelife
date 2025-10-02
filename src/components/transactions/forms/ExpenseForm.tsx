@@ -142,10 +142,7 @@ export function ExpenseForm({
               <SelectItem value="none">Nenhuma meta</SelectItem>
               {goals.map((goal) => (
                 <SelectItem key={goal.id} value={goal.id}>
-                  <div className="flex items-center gap-2">
-                    <span>{goal.goal_icon}</span>
-                    <span className="truncate">{goal.description || `Meta de ${goal.goal_type}`}</span>
-                  </div>
+                  <span className="truncate">{goal.description || `Meta de ${goal.goal_type}`}</span>
                 </SelectItem>
               ))}
             </SelectContent>

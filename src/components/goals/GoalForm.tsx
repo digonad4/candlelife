@@ -16,13 +16,12 @@ import { ptBR } from "date-fns/locale";
 
 const goalSchema = z.object({
   goal_type: z.enum(["emergency_fund", "purchase_goal", "investment_goal", "custom_goal", "spending_limit", "category_budget", "savings_rate"]),
-  amount: z.number().min(1, "O valor deve ser maior que R$ 0"),
+  target_amount: z.number().min(1, "O valor deve ser maior que R$ 0"),
   target_date: z.string().optional(),
   monthly_contribution: z.number().min(0).optional(),
   description: z.string().optional(),
-  goal_icon: z.string().optional(),
-  goal_category: z.string().optional(),
-  period_type: z.string().optional(),
+  display_on_chart: z.boolean().optional(),
+  chart_line_type: z.enum(["support", "resistance", "spending_limit"]).optional(),
   alert_threshold: z.number().min(0).max(1).optional(),
 });
 
@@ -63,16 +62,18 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
     resolver: zodResolver(goalSchema),
     defaultValues: {
       goal_type: goal?.goal_type || "custom_goal",
-      amount: goal?.amount || 0,
+      target_amount: goal?.target_amount || 0,
       monthly_contribution: goal?.monthly_contribution || 0,
       description: goal?.description || "",
-      goal_icon: goal?.goal_icon || "target",
+      display_on_chart: goal?.display_on_chart || false,
+      chart_line_type: goal?.chart_line_type || undefined,
     },
   });
 
   const selectedType = watch("goal_type");
-  const amount = watch("amount");
+  const targetAmount = watch("target_amount");
   const monthlyContribution = watch("monthly_contribution");
+  const displayOnChart = watch("display_on_chart");
 
   const handleFormSubmit = (data: GoalFormData) => {
     onSubmit({
@@ -82,8 +83,8 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
   };
 
   const calculateMonthsToComplete = () => {
-    if (amount && monthlyContribution && monthlyContribution > 0) {
-      return Math.ceil(amount / monthlyContribution);
+    if (targetAmount && monthlyContribution && monthlyContribution > 0) {
+      return Math.ceil(targetAmount / monthlyContribution);
     }
     return 0;
   };
@@ -126,16 +127,16 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="amount">Valor da Meta (R$)</Label>
+          <Label htmlFor="target_amount">Valor da Meta (R$)</Label>
           <Input
-            id="amount"
+            id="target_amount"
             type="number"
             step="0.01"
             placeholder="0,00"
-            {...register("amount", { valueAsNumber: true })}
+            {...register("target_amount", { valueAsNumber: true })}
           />
-          {errors.amount && (
-            <p className="text-sm text-red-500">{errors.amount.message}</p>
+          {errors.target_amount && (
+            <p className="text-sm text-red-500">{errors.target_amount.message}</p>
           )}
         </div>
 
@@ -179,7 +180,54 @@ export function GoalForm({ goal, onSubmit, onCancel, isLoading }: GoalFormProps)
         </Popover>
       </div>
 
-      {amount && monthlyContribution && monthlyContribution > 0 && (
+      {/* Opção para exibir no gráfico */}
+      <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="display_on_chart" className="font-medium">📊 Exibir meta no gráfico</Label>
+          <input
+            id="display_on_chart"
+            type="checkbox"
+            {...register("display_on_chart")}
+            className="h-5 w-5"
+          />
+        </div>
+        
+        {displayOnChart && (
+          <div className="space-y-2">
+            <Label>Tipo de Linha no Gráfico</Label>
+            <Select
+              value={watch("chart_line_type") || ""}
+              onValueChange={(value) => setValue("chart_line_type", value as any)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo de linha" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="resistance">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-green-500" />
+                    <span>Resistência (Meta de Acúmulo) 🎯</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="support">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-red-500" />
+                    <span>Suporte (Limite Mínimo) ⚠️</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="spending_limit">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-orange-500" />
+                    <span>Limite de Gasto 🚫</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      {targetAmount && monthlyContribution && monthlyContribution > 0 && (
         <div className="bg-muted p-4 rounded-lg">
           <h4 className="font-medium mb-2">📊 Projeção</h4>
           <p className="text-sm text-muted-foreground">

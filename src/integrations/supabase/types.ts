@@ -47,45 +47,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chart_goals: {
-        Row: {
-          alert_triggered: boolean
-          chart_position: Json | null
-          created_at: string
-          goal_type: string
-          id: string
-          is_active: boolean
-          label: string | null
-          updated_at: string
-          user_id: string
-          value: number
-        }
-        Insert: {
-          alert_triggered?: boolean
-          chart_position?: Json | null
-          created_at?: string
-          goal_type: string
-          id?: string
-          is_active?: boolean
-          label?: string | null
-          updated_at?: string
-          user_id: string
-          value: number
-        }
-        Update: {
-          alert_triggered?: boolean
-          chart_position?: Json | null
-          created_at?: string
-          goal_type?: string
-          id?: string
-          is_active?: boolean
-          label?: string | null
-          updated_at?: string
-          user_id?: string
-          value?: number
-        }
-        Relationships: []
-      }
       chat_groups: {
         Row: {
           avatar_url: string | null
@@ -253,69 +214,72 @@ export type Database = {
       financial_goals: {
         Row: {
           active: boolean
+          alert_enabled: boolean | null
           alert_threshold: number | null
-          amount: number
+          alert_triggered: boolean | null
           category: string | null
+          chart_line_color: string | null
+          chart_line_type: string | null
           created_at: string
           current_amount: number | null
           description: string | null
-          end_date: string | null
-          goal_category: string | null
-          goal_icon: string | null
+          display_on_chart: boolean | null
           goal_type: string
           id: string
           is_recurring: boolean | null
           monthly_contribution: number | null
-          period: string
           period_type: string | null
           priority_level: number | null
           start_date: string
+          target_amount: number
           target_date: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           active?: boolean
+          alert_enabled?: boolean | null
           alert_threshold?: number | null
-          amount: number
+          alert_triggered?: boolean | null
           category?: string | null
+          chart_line_color?: string | null
+          chart_line_type?: string | null
           created_at?: string
           current_amount?: number | null
           description?: string | null
-          end_date?: string | null
-          goal_category?: string | null
-          goal_icon?: string | null
+          display_on_chart?: boolean | null
           goal_type: string
           id?: string
           is_recurring?: boolean | null
           monthly_contribution?: number | null
-          period?: string
           period_type?: string | null
           priority_level?: number | null
           start_date?: string
+          target_amount: number
           target_date?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           active?: boolean
+          alert_enabled?: boolean | null
           alert_threshold?: number | null
-          amount?: number
+          alert_triggered?: boolean | null
           category?: string | null
+          chart_line_color?: string | null
+          chart_line_type?: string | null
           created_at?: string
           current_amount?: number | null
           description?: string | null
-          end_date?: string | null
-          goal_category?: string | null
-          goal_icon?: string | null
+          display_on_chart?: boolean | null
           goal_type?: string
           id?: string
           is_recurring?: boolean | null
           monthly_contribution?: number | null
-          period?: string
           period_type?: string | null
           priority_level?: number | null
           start_date?: string
+          target_amount?: number
           target_date?: string | null
           updated_at?: string
           user_id?: string

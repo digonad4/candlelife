@@ -124,12 +124,12 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
       const currentAccumulated = chartData[i][4];
       
       investmentGoals.forEach((goal) => {
-        const resistanceLevel = currentAccumulated + Math.abs(goal.amount);
+        const resistanceLevel = currentAccumulated + Math.abs(goal.target_amount);
         chartData[i].push(resistanceLevel);
       });
       
       spendingGoals.forEach((goal) => {
-        const supportLevel = currentAccumulated - Math.abs(goal.amount);
+        const supportLevel = currentAccumulated - Math.abs(goal.target_amount);
         chartData[i].push(supportLevel);
       });
     }

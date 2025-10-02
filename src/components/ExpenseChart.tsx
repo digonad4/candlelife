@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoogleChartWrapperChartType } from "react-google-charts";
 import { InteractiveSmartChart } from "./chart/InteractiveSmartChart";
 import { useGoals } from "@/hooks/useGoals";
-import { useChartGoals } from "@/hooks/useChartGoals";
 import { usePeriodLabel } from "./chart/usePeriodLabel";
 import { useTransactionData } from "./chart/useTransactionData";
 import { TimeRangeSelector } from "./chart/TimeRangeSelector";
@@ -14,8 +13,7 @@ interface ExpenseChartProps {
 }
 
 export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
-  const { goals } = useGoals();
-  const { chartGoals, createChartGoal } = useChartGoals();
+  const { goals, chartGoals, createGoal } = useGoals();
   const [chartType] = useState<GoogleChartWrapperChartType>("CandlestickChart");
   const [timeRange, setTimeRange] = useState("individual");
 
@@ -24,6 +22,16 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
 
   const { data: transactions, isLoading } = useTransactionData(chartType, timeRange, startDateISO, endDateISO);
   const periodLabel = usePeriodLabel(startDate, endDate);
+  
+  const handleCreateChartGoal = (data: { goal_type: "support" | "resistance"; value: number; label?: string }) => {
+    createGoal({
+      goal_type: data.goal_type === "resistance" ? "investment_goal" : "spending_limit",
+      target_amount: data.value,
+      description: data.label || `Meta Visual ${data.goal_type}`,
+      display_on_chart: true,
+      chart_line_type: data.goal_type,
+    });
+  };
 
   return (
     <Card>
@@ -34,12 +42,11 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
         <div className="flex-1 h-full">
           <InteractiveSmartChart 
             transactions={transactions || []} 
-            goals={goals}
-            chartGoals={chartGoals}
+            financialGoals={chartGoals}
             chartType={chartType} 
             timeRange={timeRange} 
             isLoading={isLoading} 
-            onCreateChartGoal={createChartGoal}
+            onCreateChartGoal={handleCreateChartGoal}
           />
         </div>
         <div className="flex justify-center mt-2">

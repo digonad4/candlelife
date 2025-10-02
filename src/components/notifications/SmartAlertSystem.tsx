@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useChartGoals } from "@/hooks/useChartGoals";
+import { useGoals } from "@/hooks/useGoals";
 
 interface SmartAlert {
   id: string;
@@ -23,7 +23,7 @@ export function SmartAlertSystem() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { checkGoalAlerts } = useChartGoals();
+  const { checkGoalAlerts } = useGoals();
 
   // Monitor smart alerts
   const { data: alerts = [] } = useQuery({

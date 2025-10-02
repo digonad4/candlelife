@@ -8,33 +8,37 @@ export interface FinancialGoal {
   user_id: string;
   goal_type: "emergency_fund" | "purchase_goal" | "investment_goal" | "custom_goal" | "spending_limit" | "category_budget" | "savings_rate";
   category?: string;
-  amount: number;
-  period: "monthly" | "yearly";
+  target_amount: number;
   start_date: string;
-  end_date?: string;
   target_date?: string;
   current_amount: number;
   monthly_contribution: number;
   description?: string;
-  goal_icon: string;
   active: boolean;
   created_at: string;
   updated_at: string;
-  goal_category?: string;
   period_type?: string;
   alert_threshold?: number;
   is_recurring?: boolean;
   priority_level?: number;
+  // Novos campos para metas visuais no gráfico
+  display_on_chart: boolean;
+  chart_line_type?: "support" | "resistance" | "spending_limit";
+  chart_line_color?: string;
+  alert_enabled: boolean;
+  alert_triggered: boolean;
 }
 
 export interface CreateGoalData {
   goal_type: FinancialGoal["goal_type"];
   category?: string;
-  amount: number;
+  target_amount: number;
   target_date?: string;
   monthly_contribution?: number;
   description?: string;
-  goal_icon?: string;
+  display_on_chart?: boolean;
+  chart_line_type?: "support" | "resistance" | "spending_limit";
+  chart_line_color?: string;
 }
 
 export function useGoals() {
@@ -55,10 +59,13 @@ export function useGoals() {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as FinancialGoal[];
+      return data as any[];
     },
     enabled: !!user,
   });
+
+  // Filtrar apenas metas para exibição no gráfico
+  const chartGoals = goals.filter(goal => goal.display_on_chart);
 
   const createGoal = useMutation({
     mutationFn: async (goalData: CreateGoalData) => {
@@ -66,13 +73,12 @@ export function useGoals() {
       
       const { data, error } = await supabase
         .from("financial_goals")
-        .insert({
+        .insert([{
           ...goalData,
           user_id: user.id,
           current_amount: 0,
-          period: "monthly", // Mantendo para compatibilidade
           start_date: new Date().toISOString().split('T')[0],
-        })
+        }])
         .select()
         .single();
       
@@ -173,13 +179,57 @@ export function useGoals() {
     },
   });
 
+  // Função para verificar alertas de metas visuais (support/resistance)
+  const checkGoalAlerts = useMutation({
+    mutationFn: async (currentValue: number) => {
+      if (!user) return;
+      
+      const activeChartGoals = chartGoals.filter(goal => 
+        goal.alert_enabled && !goal.alert_triggered && goal.chart_line_type
+      );
+      
+      for (const goal of activeChartGoals) {
+        let shouldAlert = false;
+        let alertMessage = "";
+        
+        if (goal.chart_line_type === "support" && currentValue <= goal.target_amount) {
+          shouldAlert = true;
+          alertMessage = `⚠️ Suporte atingido! Valor caiu para R$ ${currentValue.toFixed(2)}`;
+        } else if (goal.chart_line_type === "resistance" && currentValue >= goal.target_amount) {
+          shouldAlert = true;
+          alertMessage = `🎉 Resistência atingida! Valor chegou a R$ ${currentValue.toFixed(2)}`;
+        } else if (goal.chart_line_type === "spending_limit" && currentValue <= goal.target_amount) {
+          shouldAlert = true;
+          alertMessage = `⚠️ Limite de gastos atingido! R$ ${currentValue.toFixed(2)}`;
+        }
+        
+        if (shouldAlert) {
+          await supabase
+            .from("financial_goals")
+            .update({ alert_triggered: true })
+            .eq("id", goal.id);
+          
+          // Trigger notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(`Meta ${goal.chart_line_type === 'resistance' ? 'Resistência' : goal.chart_line_type === 'support' ? 'Suporte' : 'Limite'} Atingida!`, {
+              body: alertMessage,
+              icon: '/candle-life-icon.png',
+            });
+          }
+        }
+      }
+    },
+  });
+
   return {
     goals,
+    chartGoals, // Metas para exibir no gráfico
     isLoading,
     createGoal: createGoal.mutate,
     updateGoal: updateGoal.mutate,
     deleteGoal: deleteGoal.mutate,
     addContribution: addContribution.mutate,
+    checkGoalAlerts: checkGoalAlerts.mutate,
     isCreating: createGoal.isPending,
     isUpdating: updateGoal.isPending,
     isDeleting: deleteGoal.isPending,

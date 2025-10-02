@@ -23,7 +23,7 @@ export function useGoalProgress(goals: FinancialGoal[]) {
 
     return goals.map((goal): GoalProgress => {
       const current = goal.current_amount || 0;
-      const target = goal.amount;
+      const target = goal.target_amount;
       const percentage = target > 0 ? (current / target) * 100 : 0;
       
       // Calcular dias restantes até a data alvo

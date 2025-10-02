@@ -1,11 +1,9 @@
-import { useMemo, useCallback, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { Chart } from "react-google-charts";
-import { GoogleChartWrapperChartType } from "react-google-charts";
-import { parseISO, format, startOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { FinancialGoal } from "@/hooks/useGoals";
-import { ChartGoal } from "@/hooks/useChartGoals";
 import { ChartGoalModal } from "./ChartGoalModal";
+import { FinancialGoal } from "@/hooks/useGoals";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Info } from "lucide-react";
 
 interface TransactionData {
   date: string;
@@ -14,240 +12,218 @@ interface TransactionData {
 
 interface InteractiveSmartChartProps {
   transactions: TransactionData[];
-  goals: FinancialGoal[];
-  chartGoals: ChartGoal[];
-  chartType: GoogleChartWrapperChartType;
+  financialGoals: FinancialGoal[];
+  chartType: any;
   timeRange: string;
-  isLoading: boolean;
-  onCreateChartGoal: (data: { goal_type: "support" | "resistance"; value: number; label?: string }) => void;
+  isLoading?: boolean;
+  onCreateChartGoal?: (data: { goal_type: "support" | "resistance"; value: number; label?: string }) => void;
 }
 
-export function InteractiveSmartChart({ 
-  transactions, 
-  goals, 
-  chartGoals, 
-  chartType, 
-  timeRange, 
-  isLoading, 
-  onCreateChartGoal 
+export function InteractiveSmartChart({
+  transactions,
+  financialGoals,
+  chartType,
+  timeRange,
+  isLoading,
+  onCreateChartGoal,
 }: InteractiveSmartChartProps) {
   const [showGoalModal, setShowGoalModal] = useState(false);
-  const [clickedValue, setClickedValue] = useState<number>(0);
+  const [clickedValue, setClickedValue] = useState(0);
 
   const { chartData, chartOptions } = useMemo(() => {
     if (!transactions || transactions.length === 0) {
-      return {
-        chartData: [["Data", "Baixo", "Abertura", "Fechamento", "Alto"]],
-        chartOptions: {}
-      };
+      return { chartData: [], chartOptions: {} };
     }
 
-    // Limit to last 100 transactions for performance
-    const limitedTransactions = [...transactions]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 100)
-      .reverse();
+    // Remover limite artificial de 100 transações
+    const sortedTransactions = [...transactions].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
 
-    let candleData;
-    let accumulatedValue = 0;
+    // Função para preencher datas faltantes com DOJIS
+    const fillMissingDatesWithDojis = (transactions: TransactionData[]) => {
+      if (transactions.length === 0) return [];
+      
+      const firstDate = new Date(transactions[0].date);
+      const lastDate = new Date(transactions[transactions.length - 1].date);
+      const filledData: TransactionData[] = [];
+      
+      let accumulated = 0;
+      let currentDate = new Date(firstDate);
+      let transactionIndex = 0;
+      
+      while (currentDate <= lastDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const transaction = transactions[transactionIndex];
+        
+        if (transaction && transaction.date === dateStr) {
+          accumulated += transaction.amount;
+          filledData.push({ date: dateStr, amount: transaction.amount });
+          transactionIndex++;
+        } else {
+          // DOJI - dia sem transação (open === close)
+          filledData.push({ date: dateStr, amount: 0 });
+        }
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      return filledData;
+    };
 
+    const filledTransactions = fillMissingDatesWithDojis(sortedTransactions);
+    
+    // Processar dados baseado no timeRange
+    let candleData: any[] = [];
+    let accumulated = 0;
+    
     if (timeRange === "individual") {
-      candleData = limitedTransactions.map((t) => {
-        const previousValue = accumulatedValue;
-        accumulatedValue += t.amount;
+      filledTransactions.forEach(t => {
+        const prevAccumulated = accumulated;
+        accumulated += t.amount;
         
-        const open = previousValue;
-        const close = accumulatedValue;
-        const low = Math.min(open, close);
-        const high = Math.max(open, close);
-        
-        const dateFormatted = format(parseISO(t.date), "dd/MM HH:mm", { locale: ptBR });
-        return [dateFormatted, low, open, close, high];
+        if (t.amount === 0) {
+          // DOJI: open === close, low === high (linha horizontal fina)
+          candleData.push([
+            t.date,
+            accumulated, // Low
+            accumulated, // Open
+            accumulated, // Close
+            accumulated  // High
+          ]);
+        } else {
+          // Candle normal
+          const low = Math.min(prevAccumulated, accumulated);
+          const high = Math.max(prevAccumulated, accumulated);
+          candleData.push([
+            t.date,
+            low,
+            prevAccumulated, // Open
+            accumulated,      // Close
+            high
+          ]);
+        }
       });
     } else {
-      const processedTransactions: Array<{ date: string; amount: number }> = [];
-      accumulatedValue = 0;
-
-      limitedTransactions.forEach((t) => {
-        let dateFormatted;
+      // Agrupar por período (daily, weekly, monthly, yearly)
+      const groupedData: { [key: string]: TransactionData[] } = {};
+      
+      filledTransactions.forEach(t => {
+        const date = new Date(t.date);
+        let key: string;
+        
         switch (timeRange) {
           case "daily":
-            dateFormatted = format(startOfDay(parseISO(t.date)), "dd/MM", { locale: ptBR });
+            key = t.date;
             break;
           case "weekly":
-            dateFormatted = format(startOfWeek(parseISO(t.date), { locale: ptBR }), "dd/MM", { locale: ptBR });
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            key = weekStart.toISOString().split('T')[0];
             break;
           case "monthly":
-            dateFormatted = format(startOfMonth(parseISO(t.date)), "MM/yyyy", { locale: ptBR });
+            key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             break;
           case "yearly":
-            dateFormatted = format(startOfYear(parseISO(t.date)), "yyyy", { locale: ptBR });
+            key = date.getFullYear().toString();
             break;
           default:
-            dateFormatted = format(parseISO(t.date), "dd/MM", { locale: ptBR });
+            key = t.date;
         }
-
-        const existingTransaction = processedTransactions.find(item => item.date === dateFormatted);
         
-        if (existingTransaction) {
-          existingTransaction.amount += t.amount;
+        if (!groupedData[key]) groupedData[key] = [];
+        groupedData[key].push(t);
+      });
+
+      Object.entries(groupedData).forEach(([period, periodTransactions]) => {
+        const periodStart = accumulated;
+        let low = periodStart;
+        let high = periodStart;
+        let open = periodStart;
+        let close = periodStart;
+        
+        periodTransactions.forEach(t => {
+          accumulated += t.amount;
+          low = Math.min(low, accumulated);
+          high = Math.max(high, accumulated);
+          close = accumulated;
+        });
+        
+        if (open === close && low === high) {
+          // DOJI para período
+          candleData.push([period, open, open, open, open]);
         } else {
-          processedTransactions.push({ 
-            date: dateFormatted, 
-            amount: t.amount,
-          });
+          candleData.push([period, low, open, close, high]);
         }
       });
-
-      candleData = processedTransactions.map((t) => {
-        const previousValue = accumulatedValue;
-        accumulatedValue += t.amount;
-        
-        const open = previousValue;
-        const close = accumulatedValue;
-        const low = Math.min(open, close);
-        const high = Math.max(open, close);
-        
-        return [t.date, low, open, close, high];
-      });
     }
 
-    let chartData = [
-      ["Data", "Baixo", "Abertura", "Fechamento", "Alto"],
-      ...candleData
-    ];
-
-    // Add financial goal lines
-    const investmentGoals = goals.filter(goal => 
-      ['savings_rate', 'emergency_fund', 'investment_goal', 'purchase_goal'].includes(goal.goal_type)
-    );
+    // Metas visuais no gráfico (apenas as marcadas como display_on_chart)
+    const chartGoals = financialGoals.filter(goal => goal.display_on_chart && goal.chart_line_type);
     
-    const spendingGoals = goals.filter(goal => 
-      ['spending_limit', 'category_budget'].includes(goal.goal_type)
-    );
-
-    investmentGoals.forEach((goal) => {
-      chartData[0].push(`🔵 ${goal.description || 'Meta Investimento'}`);
-    });
-    
-    spendingGoals.forEach((goal) => {
-      chartData[0].push(`🟠 ${goal.description || 'Limite Gasto'}`);
-    });
-
-    // Add chart goal lines (visual goals)
-    const supportGoals = chartGoals.filter(g => g.goal_type === "support" && g.is_active);
-    const resistanceGoals = chartGoals.filter(g => g.goal_type === "resistance" && g.is_active);
-
-    supportGoals.forEach((goal) => {
-      chartData[0].push(`📉 ${goal.label || 'Suporte'}`);
-    });
-
-    resistanceGoals.forEach((goal) => {
-      chartData[0].push(`📈 ${goal.label || 'Resistência'}`);
-    });
-
-    // Add goal values to each data point
-    for (let i = 1; i < chartData.length; i++) {
-      const currentAccumulated = chartData[i][4];
-      
-      // Financial goals
-      investmentGoals.forEach((goal) => {
-        const resistanceLevel = currentAccumulated + Math.abs(goal.amount);
-        chartData[i].push(resistanceLevel);
-      });
-      
-      spendingGoals.forEach((goal) => {
-        const supportLevel = currentAccumulated - Math.abs(goal.amount);
-        chartData[i].push(supportLevel);
-      });
-
-      // Chart goals (fixed values)
-      supportGoals.forEach((goal) => {
-        chartData[i].push(goal.value);
-      });
-
-      resistanceGoals.forEach((goal) => {
-        chartData[i].push(goal.value);
-      });
-    }
-
     const seriesConfig: any = {};
-    let seriesIndex = 0;
-
-    // Financial goals styling
-    investmentGoals.forEach(() => {
-      seriesConfig[seriesIndex] = {
-        type: 'line',
-        color: '#2563eb',
+    chartGoals.forEach((goal, index) => {
+      seriesConfig[index + 1] = {
+        type: "line",
+        color: goal.chart_line_type === "resistance" 
+          ? "#00ff88"  // Verde brilhante (meta de acúmulo)
+          : goal.chart_line_type === "support"
+          ? "#ff4444"  // Vermelho brilhante (limite mínimo)
+          : "#ff9800", // Laranja (limite de gasto)
         lineWidth: 2,
-        lineDashStyle: [10, 5],
+        lineDashStyle: goal.chart_line_type === "spending_limit" ? [4, 4] : [0],
         pointSize: 0,
-        visibleInLegend: true,
+        visibleInLegend: false
       };
-      seriesIndex++;
     });
 
-    spendingGoals.forEach(() => {
-      seriesConfig[seriesIndex] = {
-        type: 'line',
-        color: '#ea580c',
-        lineWidth: 2,
-        lineDashStyle: [10, 5],
-        pointSize: 0,
-        visibleInLegend: true,
-      };
-      seriesIndex++;
+    // Adicionar linhas de metas ao chartData
+    const header = ["Período", "Baixo", "Abertura", "Fechamento", "Alto"];
+    chartGoals.forEach(goal => {
+      header.push(goal.description || `Meta ${goal.chart_line_type}`);
+    });
+    
+    const dataWithGoals = candleData.map(row => {
+      const newRow = [...row];
+      chartGoals.forEach(goal => {
+        newRow.push(goal.target_amount);
+      });
+      return newRow;
     });
 
-    // Chart goals styling
-    supportGoals.forEach(() => {
-      seriesConfig[seriesIndex] = {
-        type: 'line',
-        color: '#dc2626',
-        lineWidth: 3,
-        lineDashStyle: [5, 5],
-        pointSize: 0,
-        visibleInLegend: true,
-      };
-      seriesIndex++;
-    });
-
-    resistanceGoals.forEach(() => {
-      seriesConfig[seriesIndex] = {
-        type: 'line',
-        color: '#059669',
-        lineWidth: 3,
-        lineDashStyle: [5, 5],
-        pointSize: 0,
-        visibleInLegend: true,
-      };
-      seriesIndex++;
-    });
-
-    // Calculate chart center based on last value
+    // Centralização inteligente baseada em estatística
     const lastValue = candleData.length > 0 ? candleData[candleData.length - 1][4] : 0;
-    const chartMargin = Math.abs(lastValue) * 0.5; // 50% margin above and below
-    const minValue = lastValue - chartMargin;
-    const maxValue = lastValue + chartMargin;
+    const allHighValues = candleData.map(c => c[4]);
+    
+    // Calcular média e desvio padrão
+    const mean = allHighValues.reduce((sum, val) => sum + val, 0) / allHighValues.length;
+    const variance = allHighValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / allHighValues.length;
+    const stdDev = Math.sqrt(variance);
+    
+    // Margem baseada em 2 desvios padrão (95% dos dados)
+    const margin = stdDev * 2;
+    const minValue = Math.max(0, lastValue - margin);
+    const maxValue = lastValue + margin * 1.5; // Mais espaço acima para metas
 
     const options = {
-      backgroundColor: '#0f1419',
+      backgroundColor: '#0a0e27', // Dark navy (estilo TradingView)
       chartArea: { 
-        width: "90%", 
-        height: "90%", 
-        top: "8%", 
-        left: "8%", 
-        right: "2%", 
-        bottom: "2%" 
+        width: "88%", 
+        height: "82%", 
+        top: "10%", 
+        left: "9%", 
+        right: "3%", 
+        bottom: "8%" 
       },
       vAxis: {
         textStyle: { 
           color: '#8c9196',
-          fontSize: 11
+          fontSize: 11,
+          fontName: 'Roboto Mono'
         },
         format: 'currency',
         gridlines: { 
-          color: '#1e2329',
+          color: '#1a1f3a',
           count: 6
         },
         minorGridlines: {
@@ -262,12 +238,13 @@ export function InteractiveSmartChart({
       hAxis: {
         textStyle: { 
           color: '#8c9196',
-          fontSize: 11
+          fontSize: 11,
+          fontName: 'Roboto Mono'
         },
         slantedText: timeRange === "individual",
         slantedTextAngle: 30,
         gridlines: { 
-          color: '#1e2329',
+          color: '#1a1f3a',
           count: 8
         },
         minorGridlines: {
@@ -281,8 +258,8 @@ export function InteractiveSmartChart({
       crosshair: {
         trigger: 'both',
         orientation: 'both',
-        color: '#ffd700',
-        opacity: 0.7
+        color: '#ffd700', // Dourado
+        opacity: 0.8
       },
       explorer: {
         actions: ['dragToZoom', 'rightClickToReset'],
@@ -302,93 +279,111 @@ export function InteractiveSmartChart({
           strokeWidth: 1, 
           fill: '#0ecb81',
           stroke: '#0ecb81'
-        }
+        },
+        // Estilo especial para dojis
+        hollowIsRising: false
       },
-      series: seriesConfig
+      series: seriesConfig,
+      tooltip: {
+        isHtml: true,
+        trigger: 'both'
+      }
     };
 
-    return { chartData, chartOptions: options };
-  }, [transactions, goals, chartGoals, chartType, timeRange]);
+    return { 
+      chartData: [header, ...dataWithGoals], 
+      chartOptions: options 
+    };
+  }, [transactions, financialGoals, chartType, timeRange]);
 
-  const handleChartClick = useCallback((event: any) => {
-    if (event?.chartWrapper) {
-      const chart = event.chartWrapper.getChart();
-      const selection = chart.getSelection();
+  const handleChartClick = useCallback((chartWrapper: any) => {
+    if (!onCreateChartGoal) return;
+    
+    const chart = chartWrapper.getChart();
+    const selection = chart.getSelection();
+    
+    if (selection && selection.length > 0) {
+      const selectedItem = selection[0];
       
-      // If no data point is selected, we can create a goal at chart center
-      if (!selection || selection.length === 0) {
-        // Get the last accumulated value as reference
-        const lastValue = chartData.length > 1 ? (chartData[chartData.length - 1][4] as number) : 0;
-        const margin = Math.abs(lastValue) * 0.3; // 30% above current value for default goal
-        const suggestedValue = Math.round((lastValue + margin) / 100) * 100; // Round to nearest 100
-        
-        setClickedValue(suggestedValue);
+      if (selectedItem.row !== null && selectedItem.row !== undefined) {
+        // Clicou em um ponto específico
+        const dataTable = chartWrapper.getDataTable();
+        const highValue = dataTable.getValue(selectedItem.row, 4); // Valor "Alto"
+        setClickedValue(highValue);
         setShowGoalModal(true);
-      } else {
-        // If a data point is selected, use its value
-        const selectedItem = selection[0];
-        if (selectedItem.row !== undefined && selectedItem.row !== null) {
-          const rowData = chartData[selectedItem.row + 1]; // +1 because header is index 0
-          if (rowData && rowData[4]) { // Get the "Alto" value (closing accumulated value)
-            setClickedValue(rowData[4] as number);
-            setShowGoalModal(true);
-          }
-        }
+      }
+    } else {
+      // Clicou em área vazia - sugerir valor baseado no último ponto
+      if (chartData && chartData.length > 1) {
+        const lastDataPoint = chartData[chartData.length - 1];
+        const lastValue = lastDataPoint[4]; // Valor "Alto"
+        setClickedValue(lastValue);
+        setShowGoalModal(true);
       }
     }
-  }, [chartData]);
+  }, [chartData, onCreateChartGoal]);
 
-  const handleCreateGoal = useCallback((goalData: { goal_type: "support" | "resistance"; value: number; label?: string }) => {
-    onCreateChartGoal(goalData);
+  const handleCreateGoal = useCallback((data: { goal_type: "support" | "resistance"; value: number; label?: string }) => {
+    if (onCreateChartGoal) {
+      onCreateChartGoal(data);
+    }
     setShowGoalModal(false);
   }, [onCreateChartGoal]);
 
   if (isLoading) {
     return (
-      <div className="w-full h-full bg-muted/20 animate-pulse rounded-lg flex items-center justify-center">
-        <div className="text-sm text-muted-foreground">Carregando análise inteligente...</div>
+      <div className="w-full h-[500px] space-y-4">
+        <Skeleton className="w-full h-full" />
+        <div className="text-center text-sm text-muted-foreground">
+          Carregando gráfico profissional...
+        </div>
       </div>
     );
   }
 
-  if (transactions.length === 0) {
+  if (!transactions || transactions.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="text-muted-foreground">
-          <p>📊 Nenhuma transação encontrada</p>
-          <p className="text-sm mt-2">Adicione transações para visualizar análises</p>
+      <div className="w-full h-[500px] flex items-center justify-center bg-[#0a0e27] rounded-xl border border-[#1a1f3a]">
+        <div className="text-center space-y-2">
+          <div className="text-[#8c9196] text-lg">📊 Sem dados para exibir</div>
+          <p className="text-[#6b7280] text-sm">Adicione transações para visualizar o gráfico</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full">
-      <Chart
-        width="100%"
-        height="100%"
-        chartType={chartType}
-        loader={<div className="text-center py-4">Carregando...</div>}
-        data={chartData}
-        options={chartOptions}
-        chartEvents={[
-          {
-            eventName: 'select',
-            callback: handleChartClick,
-          },
-        ]}
-      />
+    <div className="w-full space-y-4">
+      <div className="bg-[#0a0e27] rounded-xl border border-[#1a1f3a] p-4">
+        <Chart
+          chartType="CandlestickChart"
+          width="100%"
+          height="500px"
+          data={chartData}
+          options={chartOptions}
+          chartEvents={[
+            {
+              eventName: "select",
+              callback: ({ chartWrapper }) => handleChartClick(chartWrapper),
+            },
+          ]}
+        />
+      </div>
       
-      <div className="absolute top-2 right-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
-        🎯 Clique em área vazia para definir meta | 🔍 Arraste para zoom
+      {/* Tooltip de instruções */}
+      <div className="flex items-center gap-2 text-xs text-[#8c9196] justify-center">
+        <Info className="h-4 w-4" />
+        <span>Clique no gráfico para criar metas visuais | Arraste para zoom | Clique direito para resetar</span>
       </div>
 
-      <ChartGoalModal
-        isOpen={showGoalModal}
-        onClose={() => setShowGoalModal(false)}
-        onCreateGoal={handleCreateGoal}
-        clickedValue={clickedValue}
-      />
+      {showGoalModal && (
+        <ChartGoalModal
+          isOpen={showGoalModal}
+          onClose={() => setShowGoalModal(false)}
+          onCreateGoal={handleCreateGoal}
+          clickedValue={clickedValue}
+        />
+      )}
     </div>
   );
 }
