@@ -115,7 +115,7 @@ const RecentTransactions = ({
       <CardHeader>
         <CardTitle>Transações</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 mx-0 px-0 overflow-x-auto">
+      <CardContent className="space-y-6 mx-0 px-0 py-[75px]">
         <TransactionSearchFilter searchTerm={searchTerm} onSearchTermChange={setSearchTerm} viewMode={viewMode} onToggleViewMode={toggleViewMode} />
 
         <div>

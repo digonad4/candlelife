@@ -34,13 +34,13 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <CardHeader>
         <CardTitle>Seu desempenho de {periodLabel}</CardTitle>
       </CardHeader>
-      <CardContent className="h-[500px] flex flex-col overflow-hidden">
-        <div className="flex-1 h-full overflow-hidden">
-          <InteractiveSmartChart
+      <CardContent className="h-[500px] flex flex-col">
+        <div className="flex-1 h-full">
+          <InteractiveSmartChart 
             transactions={transactions || []} 
             financialGoals={chartGoals}
             chartType={chartType} 
@@ -49,8 +49,8 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
             onCreateChartGoal={handleCreateChartGoal}
           />
         </div>
-        <div className="flex justify-center mt-2 flex-shrink-0">
-          <TimeRangeSelector
+        <div className="flex justify-center mt-2">
+          <TimeRangeSelector 
             timeRange={timeRange} 
             onTimeRangeChange={setTimeRange} 
           />

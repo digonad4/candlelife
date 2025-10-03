@@ -63,7 +63,20 @@ const Dashboard = () => {
       {/* Transactions and values */}
       <RecentTransactions startDate={startDate} endDate={endDate} />
 
-      <ExpenseModal
+      {/* Rounded button to add transaction - positioned correctly */}
+      <Button 
+        size="lg" 
+        onClick={() => setIsModalOpen(true)} 
+        className={`fixed shadow-lg flex items-center justify-center z-30 rounded-full w-12 h-12 md:w-14 md:h-14 ${
+          isMobile 
+            ? 'bottom-28 right-4' // Above mobile navigation
+            : 'bottom-20 right-6' // Above desktop footer
+        }`}
+      >
+        <Plus className="w-5 h-5" />
+      </Button>
+
+      <ExpenseModal 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 
         onTransactionAdded={() => {
