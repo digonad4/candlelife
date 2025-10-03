@@ -54,7 +54,7 @@ export function AppSidebar() {
   const financialMenuItems = [
     { icon: CreditCard, label: "Transações", href: "/transactions" },
     { icon: TrendingUp, label: "Receitas", href: "/transactions?type=income" },
-    { icon: TrendingDown, label: "Despesas", href: "/expenses" },
+    { icon: TrendingDown, label: "Despesas", href: "/transactions?type=expense" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
     { icon: Target, label: "Metas", href: "/goals" },
     { icon: Brain, label: "Analytics IA", href: "/analytics" },
@@ -117,7 +117,8 @@ export function AppSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={location.pathname === item.href || 
-                             (item.href.includes('?type=income') && location.pathname === '/transactions' && location.search.includes('type=income'))}
+                             (item.href.includes('?type=income') && location.pathname === '/transactions' && location.search.includes('type=income')) ||
+                             (item.href.includes('?type=expense') && location.pathname === '/transactions' && location.search.includes('type=expense'))}
                     className="w-full justify-start gap-3 px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
                   >
                     <Link to={item.href} className="flex items-center gap-3">

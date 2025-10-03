@@ -3,7 +3,9 @@ import { Chart } from "react-google-charts";
 import { ChartGoalModal } from "./ChartGoalModal";
 import { FinancialGoal } from "@/hooks/useGoals";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Info } from "lucide-react";
+import { Info, Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface TransactionData {
   date: string;
@@ -32,13 +34,14 @@ interface AccumulationCandle {
 export function InteractiveSmartChart({
   transactions,
   financialGoals,
-  chartType, // Não usado diretamente, mas mantido na interface
+  chartType,
   timeRange,
   isLoading,
   onCreateChartGoal,
 }: InteractiveSmartChartProps) {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [clickedValue, setClickedValue] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const { chartData, chartOptions } = useMemo(() => {
     if (!transactions || transactions.length === 0) {
@@ -214,30 +217,30 @@ export function InteractiveSmartChart({
 
     // 7. Configuração das Opções do Gráfico
     const options = {
-      backgroundColor: '#0a0e27',
+      backgroundColor: 'transparent',
       chartArea: { 
-        width: "88%", 
-        height: "82%", 
-        top: "10%", 
-        left: "9%", 
-        right: "3%", 
-        bottom: "8%" 
+        width: "90%", 
+        height: "85%", 
+        top: "5%", 
+        left: "8%", 
+        right: "2%", 
+        bottom: "10%" 
       },
       vAxis: {
         textStyle: { 
-          color: '#8c9196',
-          fontSize: 11,
-          fontName: 'Roboto Mono'
+          color: 'hsl(var(--muted-foreground))',
+          fontSize: 12,
+          fontName: 'Inter, system-ui'
         },
         format: 'currency',
         gridlines: { 
-          color: '#1a1f3a',
-          count: 6
+          color: 'hsl(var(--border))',
+          count: 8
         },
         minorGridlines: {
           color: 'transparent'
         },
-        baselineColor: '#2b3139',
+        baselineColor: 'hsl(var(--border))',
         viewWindow: {
           min: minValue,
           max: maxValue
@@ -245,20 +248,20 @@ export function InteractiveSmartChart({
       },
       hAxis: {
         textStyle: { 
-          color: '#8c9196',
+          color: 'hsl(var(--muted-foreground))',
           fontSize: 11,
-          fontName: 'Roboto Mono'
+          fontName: 'Inter, system-ui'
         },
         slantedText: timeRange === "individual" || timeRange === "daily",
-        slantedTextAngle: 30,
+        slantedTextAngle: 45,
         gridlines: { 
-          color: '#1a1f3a',
-          count: 8
+          color: 'hsl(var(--border))',
+          count: -1
         },
         minorGridlines: {
           color: 'transparent'
         },
-        baselineColor: '#2b3139'
+        baselineColor: 'hsl(var(--border))'
       },
       legend: {
         position: 'none'
@@ -266,8 +269,8 @@ export function InteractiveSmartChart({
       crosshair: {
         trigger: 'both',
         orientation: 'both',
-        color: '#ffd700',
-        opacity: 0.8
+        color: 'hsl(var(--primary))',
+        opacity: 0.6
       },
       explorer: {
         actions: ['dragToZoom', 'rightClickToReset'],
@@ -275,31 +278,35 @@ export function InteractiveSmartChart({
         keepInBounds: true,
         maxZoomIn: 10.0,
         maxZoomOut: 1.0,
-        zoomDelta: 1.1
+        zoomDelta: 1.15
       },
       candlestick: {
-        fallingColor: { // Candle de queda (Open > Close)
-          strokeWidth: 1, 
-          fill: '#f6465d', // Vermelho (perda de valor no período)
-          stroke: '#f6465d'
+        fallingColor: {
+          strokeWidth: 2, 
+          fill: 'hsl(var(--destructive))',
+          stroke: 'hsl(var(--destructive))'
         },
-        risingColor: { // Candle de alta (Close > Open)
-          strokeWidth: 1, 
-          fill: '#0ecb81', // Verde (ganho de valor no período)
-          stroke: '#0ecb81'
+        risingColor: {
+          strokeWidth: 2, 
+          fill: 'hsl(var(--success))',
+          stroke: 'hsl(var(--success))'
         },
         hollowIsRising: false
       },
-      // Configuração de séries: a série 0 é o Candlestick, as subsequentes são as linhas de meta
       series: {
         0: { type: 'candlestick' },
         ...Object.fromEntries(
-          chartGoals.map((_, index) => [index + 1, seriesConfig[index]]) // O índice de series começa em 1 para a primeira linha de meta
+          chartGoals.map((_, index) => [index + 1, seriesConfig[index]])
         )
       },
       tooltip: {
         isHtml: true,
         trigger: 'both'
+      },
+      animation: {
+        startup: true,
+        duration: 500,
+        easing: 'inAndOut'
       }
     };
 
@@ -376,39 +383,68 @@ export function InteractiveSmartChart({
     );
   }
 
+  const ChartComponent = (
+    <div className="relative w-full h-full">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm hover:bg-background"
+        onClick={() => setIsFullscreen(!isFullscreen)}
+      >
+        {isFullscreen ? (
+          <Minimize2 className="h-4 w-4" />
+        ) : (
+          <Maximize2 className="h-4 w-4" />
+        )}
+      </Button>
+      <Chart
+        chartType="CandlestickChart"
+        width="100%"
+        height={isFullscreen ? "calc(100vh - 100px)" : "500px"}
+        data={chartData}
+        options={chartOptions}
+        chartEvents={[
+          {
+            eventName: "select",
+            callback: ({ chartWrapper }) => handleChartClick(chartWrapper),
+          },
+        ]}
+      />
+    </div>
+  );
+
   return (
-    <div className="w-full space-y-4">
-        <div className="bg-[#0a0e27] rounded-xl border border-[#1a1f3a] p-1 sm:p-2">
-          <Chart
-            chartType="CandlestickChart"
-            width="100%"
-            height="500px"
-            data={chartData}
-            options={chartOptions}
-            chartEvents={[
-              {
-                eventName: "select",
-                callback: ({ chartWrapper }) => handleChartClick(chartWrapper),
-              },
-            ]}
-          />
+    <>
+      <div className="w-full space-y-4">
+        <div className="bg-card rounded-xl border border-border p-2 sm:p-4 overflow-hidden">
+          {ChartComponent}
         </div>
-      
-      {/* Tooltip de instruções */}
-      <div className="flex items-center gap-2 text-xs text-[#8c9196] justify-center px-2 text-center">
-        <Info className="h-4 w-4 text-[#8c9196] flex-shrink-0" />
-        <span className="hidden sm:inline">Clique no gráfico (ou vela) para criar metas visuais | Arraste para zoom | Clique direito para resetar</span>
-        <span className="sm:hidden">Clique para criar metas | Arraste para zoom</span>
+        
+        {/* Tooltip de instruções */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center px-2 text-center">
+          <Info className="h-4 w-4 flex-shrink-0" />
+          <span className="hidden sm:inline">Clique no gráfico para criar metas | Arraste para zoom | Clique direito para resetar | Tela cheia disponível</span>
+          <span className="sm:hidden">Clique para criar metas | Arraste para zoom</span>
+        </div>
+
+        {showGoalModal && (
+          <ChartGoalModal
+            isOpen={showGoalModal}
+            onClose={() => setShowGoalModal(false)}
+            onCreateGoal={handleCreateGoal}
+            clickedValue={clickedValue}
+          />
+        )}
       </div>
 
-      {showGoalModal && (
-        <ChartGoalModal
-          isOpen={showGoalModal}
-          onClose={() => setShowGoalModal(false)}
-          onCreateGoal={handleCreateGoal}
-          clickedValue={clickedValue}
-        />
-      )}
-    </div>
+      {/* Fullscreen Dialog */}
+      <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-4">
+          <div className="w-full h-full">
+            {ChartComponent}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

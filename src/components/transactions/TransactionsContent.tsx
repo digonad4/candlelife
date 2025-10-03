@@ -40,7 +40,7 @@ export function TransactionsContent({
           {searchTerm ? "Resultados da Pesquisa" : "Histórico de Transações"}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-auto max-h-[calc(100vh-400px)]">
         <TransactionActionBar
           selectedTransactions={selectedTransactions}
           onSelectAll={onSelectAll}

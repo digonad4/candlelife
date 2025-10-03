@@ -33,6 +33,7 @@
     --trading-blue: 212 100% 46%; /* Resistance */
     --trading-orange: 24 80% 58%; /* Support */
     --trading-gold: 45 93% 58%; /* Premium */
+    --success: 142 76% 36%; /* Trading green for success states */
     
     --scrollbar-track: hsl(210 40% 96%);
     --scrollbar-thumb: hsl(212 100% 46%);
@@ -81,6 +82,7 @@
     --trading-blue: 212 100% 58%;
     --trading-orange: 24 90% 68%;
     --trading-gold: 45 100% 68%;
+    --success: 142 86% 46%; /* Trading green for success states */
     
     --scrollbar-track: hsl(217.2 32.6% 17.5%);
     --scrollbar-thumb: hsl(212 100% 58%);
@@ -179,6 +181,7 @@
     --trading-blue: 214 100% 46%;
     --trading-orange: 24 80% 58%;
     --trading-gold: 45 93% 58%;
+    --success: 142 76% 36%;
     
     --scrollbar-track: hsl(142 30% 96%);
     --scrollbar-thumb: hsl(142 76% 36%);
@@ -218,6 +221,7 @@
     --trading-blue: 214 100% 58%;
     --trading-orange: 24 90% 68%;
     --trading-gold: 45 100% 68%;
+    --success: 142 86% 56%;
     
     --scrollbar-track: hsl(142 20% 15%);
     --scrollbar-thumb: hsl(142 76% 46%);
