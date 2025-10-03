@@ -58,7 +58,7 @@ export const MobileBottomNavigation = () => {
       badge: totalUnreadMessages > 0 ? (totalUnreadMessages > 99 ? "99+" : totalUnreadMessages.toString()) : undefined
     },
     { icon: Globe, label: "Comunidade", href: "/social" },
-    { icon: TrendingUp, label: "Receitas", href: "/transactions?type=income" },
+    { icon: TrendingUp, label: "Receitas", href: "/transactions" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
     { icon: Settings, label: "Configurações", href: "/settings" },
@@ -149,8 +149,7 @@ export const MobileBottomNavigation = () => {
             <div className="p-4 space-y-2 pb-8">
               {secondaryNavItems.map((item) => {
                 const isActive = location.pathname === item.href || 
-                                (item.href === "/chat" && location.pathname.startsWith("/chat")) ||
-                                (item.href.includes('?type=income') && location.pathname === '/transactions' && location.search.includes('type=income'));
+                                (item.href === "/chat" && location.pathname.startsWith("/chat"));
                 
                 return (
                   <Link

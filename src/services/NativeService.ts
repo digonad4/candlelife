@@ -28,8 +28,7 @@ class NativeService {
       await StatusBar.setStyle({ style: Style.Dark });
       await StatusBar.setBackgroundColor({ color: '#8B5CF6' });
 
-      // Esconder splash screen após inicialização
-      await SplashScreen.hide();
+      // Splash screen desativado - não é necessário
 
       // Configurar teclado
       Keyboard.addListener('keyboardWillShow', (info) => {

@@ -59,9 +59,11 @@ export function InteractiveSmartChart({
       
       const detailedAccumulation: AccumulationCandle[] = [];
       const transactionMap = new Map<string, number>();
+      
+      // Mapear todas as transações por data
       transactions.forEach(t => {
-        // Se houver múltiplas transações no mesmo dia, somar os valores
-        transactionMap.set(t.date, (transactionMap.get(t.date) || 0) + t.amount);
+        const dateKey = t.date.split('T')[0];
+        transactionMap.set(dateKey, (transactionMap.get(dateKey) || 0) + t.amount);
       });
       
       let accumulated = 0;
@@ -75,10 +77,10 @@ export function InteractiveSmartChart({
         accumulated += dailyAmount;
         const close = accumulated;
         
-        // Em um dia sem transação (DOJI), Open=Close=Low=High=acumulado
-        // Em um dia com transação, Low/High são min/max entre Open e Close
-        const low = dailyAmount === 0 ? open : Math.min(open, close);
-        const high = dailyAmount === 0 ? open : Math.max(open, close);
+        // DOJI: dias sem transação aparecem como linha horizontal (Open=Close=Low=High)
+        // Vela: dias com transação mostram acumulação (Low=min, High=max)
+        const low = Math.min(open, close);
+        const high = Math.max(open, close);
 
         detailedAccumulation.push({
           key: dateStr,
@@ -376,26 +378,27 @@ export function InteractiveSmartChart({
 
   return (
     <div className="w-full space-y-4">
-      <div className="bg-[#0a0e27] rounded-xl border border-[#1a1f3a] p-1">
-        <Chart
-          chartType="CandlestickChart"
-          width="100%"
-          height="500px"
-          data={chartData}
-          options={chartOptions}
-          chartEvents={[
-            {
-              eventName: "select",
-              callback: ({ chartWrapper }) => handleChartClick(chartWrapper),
-            },
-          ]}
-        />
-      </div>
+        <div className="bg-[#0a0e27] rounded-xl border border-[#1a1f3a] p-1 sm:p-2">
+          <Chart
+            chartType="CandlestickChart"
+            width="100%"
+            height="500px"
+            data={chartData}
+            options={chartOptions}
+            chartEvents={[
+              {
+                eventName: "select",
+                callback: ({ chartWrapper }) => handleChartClick(chartWrapper),
+              },
+            ]}
+          />
+        </div>
       
       {/* Tooltip de instruções */}
-      <div className="flex items-center gap-2 text-xs text-[#8c9196] justify-center">
-        <Info className="h-4 w-4 text-[#8c9196]" />
-     <span>Clique no gráfico (ou vela) para criar metas visuais | Arraste para zoom | Clique direito para resetar</span>
+      <div className="flex items-center gap-2 text-xs text-[#8c9196] justify-center px-2 text-center">
+        <Info className="h-4 w-4 text-[#8c9196] flex-shrink-0" />
+        <span className="hidden sm:inline">Clique no gráfico (ou vela) para criar metas visuais | Arraste para zoom | Clique direito para resetar</span>
+        <span className="sm:hidden">Clique para criar metas | Arraste para zoom</span>
       </div>
 
       {showGoalModal && (

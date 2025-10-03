@@ -15,7 +15,7 @@ interface ExpenseChartProps {
 export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
   const { goals, chartGoals, createGoal } = useGoals();
   const [chartType] = useState<GoogleChartWrapperChartType>("CandlestickChart");
-  const [timeRange, setTimeRange] = useState("individual");
+  const [timeRange, setTimeRange] = useState<"individual" | "daily" | "weekly" | "monthly" | "yearly">("individual");
 
   const startDateISO = startDate ? startDate.toISOString() : undefined;
   const endDateISO = endDate ? endDate.toISOString() : undefined;

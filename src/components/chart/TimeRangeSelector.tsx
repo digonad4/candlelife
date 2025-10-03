@@ -1,12 +1,12 @@
 import React from "react";
 
 interface TimeRangeSelectorProps {
-  timeRange: string;
-  onTimeRangeChange: (timeRange: string) => void;
+  timeRange: "individual" | "daily" | "weekly" | "monthly" | "yearly";
+  onTimeRangeChange: (timeRange: "individual" | "daily" | "weekly" | "monthly" | "yearly") => void;
 }
 
 export function TimeRangeSelector({ timeRange, onTimeRangeChange }: TimeRangeSelectorProps) {
-  const ranges = [
+  const ranges: Array<{ value: "individual" | "daily" | "weekly" | "monthly" | "yearly"; label: string }> = [
     { value: "individual", label: "P" },
     { value: "daily", label: "D" },
     { value: "weekly", label: "S" },
