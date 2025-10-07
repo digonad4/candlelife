@@ -4,6 +4,18 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
+// Helper function to convert HSL to Hex
+function hslToHex(h: number, s: number, l: number): string {
+  l /= 100;
+  const a = s * Math.min(l, 1 - l) / 100;
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 interface CandleData {
   date: string;
   open: number;
@@ -33,45 +45,53 @@ export function ProfessionalCandlestickChart({ data, goals = [], onClickValue }:
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    // Get computed colors from CSS variables
+    const getColor = (varName: string) => {
+      const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+      // Convert HSL to hex
+      const [h, s, l] = value.split(' ').map(v => parseFloat(v.replace('%', '')));
+      return hslToHex(h, s, l);
+    };
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { color: 'hsl(var(--background))' },
-        textColor: 'hsl(var(--foreground))',
+        background: { color: getColor('--chart-background') },
+        textColor: getColor('--foreground'),
       },
       grid: {
-        vertLines: { color: 'hsl(var(--border))' },
-        horzLines: { color: 'hsl(var(--border))' },
+        vertLines: { color: getColor('--chart-grid') },
+        horzLines: { color: getColor('--chart-grid') },
       },
       width: chartContainerRef.current.clientWidth,
       height: isFullscreen ? window.innerHeight - 100 : 500,
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
-        borderColor: 'hsl(var(--primary))',
+        borderColor: getColor('--chart-crosshair'),
       },
       crosshair: {
         mode: 1,
         vertLine: {
-          color: 'hsl(var(--primary))',
+          color: getColor('--chart-crosshair'),
           width: 1,
           style: 2,
-          labelBackgroundColor: 'hsl(var(--primary))',
+          labelBackgroundColor: getColor('--chart-crosshair'),
         },
         horzLine: {
-          color: 'hsl(var(--primary))',
+          color: getColor('--chart-crosshair'),
           width: 1,
           style: 2,
-          labelBackgroundColor: 'hsl(var(--primary))',
+          labelBackgroundColor: getColor('--chart-crosshair'),
         },
       },
     });
 
     const candlestickSeries = chart.addCandlestickSeries({
-      upColor: 'hsl(var(--success))',
-      downColor: 'hsl(var(--destructive))',
+      upColor: getColor('--chart-candle-up'),
+      downColor: getColor('--chart-candle-down'),
       borderVisible: false,
-      wickUpColor: 'hsl(var(--success))',
-      wickDownColor: 'hsl(var(--destructive))',
+      wickUpColor: getColor('--chart-candle-up'),
+      wickDownColor: getColor('--chart-candle-down'),
     });
 
     // Converter dados
@@ -89,7 +109,7 @@ export function ProfessionalCandlestickChart({ data, goals = [], onClickValue }:
     goals.forEach(goal => {
       const priceLine = candlestickSeries.createPriceLine({
         price: goal.value,
-        color: goal.type === 'resistance' ? 'hsl(var(--success))' : 'hsl(var(--destructive))',
+        color: goal.type === 'resistance' ? getColor('--chart-candle-up') : getColor('--chart-candle-down'),
         lineWidth: 2,
         lineStyle: goal.type === 'support' ? 2 : 0,
         axisLabelVisible: true,

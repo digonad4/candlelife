@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import { Chart } from "react-google-charts";
-import { GoogleChartWrapperChartType } from "react-google-charts";
+import { ProfessionalCandlestickChart } from "@/components/chart/ProfessionalCandlestickChart";
 import { parseISO, format, startOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FinancialGoal } from "@/hooks/useGoals";
@@ -13,21 +12,19 @@ interface TransactionData {
 interface SmartChartProps {
   transactions: TransactionData[];
   goals: FinancialGoal[];
-  chartType: GoogleChartWrapperChartType;
   timeRange: string;
   isLoading: boolean;
 }
 
-export function SmartChart({ transactions, goals, chartType, timeRange, isLoading }: SmartChartProps) {
-  const { chartData, chartOptions } = useMemo(() => {
+export function SmartChart({ transactions, goals, timeRange, isLoading }: SmartChartProps) {
+  const { chartData, chartGoals } = useMemo(() => {
     if (!transactions || transactions.length === 0) {
       return {
-        chartData: [["Data", "Baixo", "Abertura", "Fechamento", "Alto"]],
-        chartOptions: {}
+        chartData: [],
+        chartGoals: []
       };
     }
 
-    // Limit to last 100 transactions for performance
     const limitedTransactions = [...transactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 100)
@@ -46,8 +43,13 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
         const low = Math.min(open, close);
         const high = Math.max(open, close);
         
-        const dateFormatted = format(parseISO(t.date), "dd/MM HH:mm", { locale: ptBR });
-        return [dateFormatted, low, open, close, high];
+        return {
+          date: t.date,
+          open,
+          high,
+          low,
+          close
+        };
       });
     } else {
       const processedTransactions: Array<{ date: string; amount: number }> = [];
@@ -57,19 +59,19 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
         let dateFormatted;
         switch (timeRange) {
           case "daily":
-            dateFormatted = format(startOfDay(parseISO(t.date)), "dd/MM", { locale: ptBR });
+            dateFormatted = format(startOfDay(parseISO(t.date)), "yyyy-MM-dd", { locale: ptBR });
             break;
           case "weekly":
-            dateFormatted = format(startOfWeek(parseISO(t.date), { locale: ptBR }), "dd/MM", { locale: ptBR });
+            dateFormatted = format(startOfWeek(parseISO(t.date), { locale: ptBR }), "yyyy-MM-dd", { locale: ptBR });
             break;
           case "monthly":
-            dateFormatted = format(startOfMonth(parseISO(t.date)), "MM/yyyy", { locale: ptBR });
+            dateFormatted = format(startOfMonth(parseISO(t.date)), "yyyy-MM-dd", { locale: ptBR });
             break;
           case "yearly":
-            dateFormatted = format(startOfYear(parseISO(t.date)), "yyyy", { locale: ptBR });
+            dateFormatted = format(startOfYear(parseISO(t.date)), "yyyy-MM-dd", { locale: ptBR });
             break;
           default:
-            dateFormatted = format(parseISO(t.date), "dd/MM", { locale: ptBR });
+            dateFormatted = format(parseISO(t.date), "yyyy-MM-dd", { locale: ptBR });
         }
 
         const existingTransaction = processedTransactions.find(item => item.date === dateFormatted);
@@ -93,99 +95,26 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
         const low = Math.min(open, close);
         const high = Math.max(open, close);
         
-        return [t.date, low, open, close, high];
+        return {
+          date: t.date,
+          open,
+          high,
+          low,
+          close
+        };
       });
     }
 
-    let chartData = [
-      ["Data", "Baixo", "Abertura", "Fechamento", "Alto"],
-      ...candleData
-    ];
+    const chartGoals = goals
+      .filter(goal => goal.display_on_chart)
+      .map(goal => ({
+        value: goal.target_amount,
+        type: (goal.chart_line_type === 'resistance' ? 'resistance' : 'support') as 'support' | 'resistance',
+        label: goal.description || `Meta: R$ ${goal.target_amount.toFixed(2)}`,
+      }));
 
-    const investmentGoals = goals.filter(goal => 
-      ['savings_rate', 'emergency_fund', 'investment_goal', 'purchase_goal'].includes(goal.goal_type)
-    );
-    
-    const spendingGoals = goals.filter(goal => 
-      ['spending_limit', 'category_budget'].includes(goal.goal_type)
-    );
-
-    // Add goal columns
-    investmentGoals.forEach((goal) => {
-      chartData[0].push(`🔵 ${goal.description || 'Meta Investimento'}`);
-    });
-    
-    spendingGoals.forEach((goal) => {
-      chartData[0].push(`🟠 ${goal.description || 'Limite Gasto'}`);
-    });
-
-    // Add goal values
-    for (let i = 1; i < chartData.length; i++) {
-      const currentAccumulated = chartData[i][4];
-      
-      investmentGoals.forEach((goal) => {
-        const resistanceLevel = currentAccumulated + Math.abs(goal.target_amount);
-        chartData[i].push(resistanceLevel);
-      });
-      
-      spendingGoals.forEach((goal) => {
-        const supportLevel = currentAccumulated - Math.abs(goal.target_amount);
-        chartData[i].push(supportLevel);
-      });
-    }
-
-    const seriesConfig: any = {};
-    let seriesIndex = 0;
-
-    investmentGoals.forEach(() => {
-      seriesConfig[seriesIndex] = {
-        type: 'line',
-        color: '#2563eb',
-        lineWidth: 2,
-        lineDashStyle: [10, 5],
-        pointSize: 0,
-        visibleInLegend: true,
-      };
-      seriesIndex++;
-    });
-
-    spendingGoals.forEach(() => {
-      seriesConfig[seriesIndex] = {
-        type: 'line',
-        color: '#ea580c',
-        lineWidth: 2,
-        lineDashStyle: [10, 5],
-        pointSize: 0,
-        visibleInLegend: true,
-      };
-      seriesIndex++;
-    });
-
-    const options = {
-      legend: { position: 'top', alignment: 'start' },
-      backgroundColor: "transparent",
-      chartArea: { width: "90%", height: "75%", top: 60 },
-      vAxis: {
-        title: "Saldo Acumulado (R$)",
-        format: "currency",
-        gridlines: { color: "#e5e7eb" }
-      },
-      hAxis: {
-        title: timeRange === "individual" ? "Transações" : "Período",
-        slantedText: timeRange === "individual",
-        slantedTextAngle: 30
-      },
-      candlestick: {
-        fallingColor: { strokeWidth: 0, fill: "#dc2626", stroke: "transparent" },
-        risingColor: { strokeWidth: 0, fill: "#16a34a", stroke: "transparent" },
-        hollowIsRising: false
-      },
-      series: seriesConfig,
-      crosshair: { trigger: 'both', orientation: 'both' }
-    };
-
-    return { chartData, chartOptions: options };
-  }, [transactions, goals, chartType, timeRange]);
+    return { chartData: candleData, chartGoals };
+  }, [transactions, goals, timeRange]);
 
   if (isLoading) {
     return (
@@ -208,13 +137,9 @@ export function SmartChart({ transactions, goals, chartType, timeRange, isLoadin
 
   return (
     <div className="relative h-full">
-      <Chart
-        width="100%"
-        height="100%"
-        chartType={chartType}
-        loader={<div className="text-center py-4">Carregando...</div>}
+      <ProfessionalCandlestickChart 
         data={chartData}
-        options={chartOptions}
+        goals={chartGoals}
       />
     </div>
   );

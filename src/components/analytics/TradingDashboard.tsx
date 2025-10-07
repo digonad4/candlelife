@@ -180,7 +180,6 @@ export function TradingDashboard() {
             <SmartChart 
               transactions={transactions || []} 
               goals={goals}
-              chartType={chartType} 
               timeRange={timeRange} 
               isLoading={isLoading} 
             />
