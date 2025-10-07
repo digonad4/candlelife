@@ -16,16 +16,11 @@ import {
 } from "lucide-react";
 import { SmartChart } from "./SmartChart";
 import { useGoals } from "@/hooks/useGoals";
-import { useTransactionData } from "../chart/useTransactionData";
 import { useSmartAlerts } from "@/hooks/useSmartAlerts";
-import { GoogleChartWrapperChartType } from "react-google-charts";
 import { cn } from "@/lib/utils";
 
 export function TradingDashboard() {
   const { goals } = useGoals();
-  const [chartType] = useState<GoogleChartWrapperChartType>("CandlestickChart");
-  const [timeRange, setTimeRange] = useState("individual");
-  const { data: transactions, isLoading } = useTransactionData(chartType, timeRange);
   const { insights, spendingAnalysis, alerts, unreadCount } = useSmartAlerts();
 
   // Calculate key metrics
@@ -152,36 +147,15 @@ export function TradingDashboard() {
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
                 <Activity className="h-3 w-3 mr-1" />
-                100 Últimas Transações
+                Gráfico de Desempenho
               </Badge>
-              <div className="flex gap-1">
-                <Button
-                  variant={timeRange === "individual" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeRange("individual")}
-                  className="text-xs"
-                >
-                  Individual
-                </Button>
-                <Button
-                  variant={timeRange === "daily" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeRange("daily")}
-                  className="text-xs"
-                >
-                  Diário
-                </Button>
-              </div>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="h-[500px] chart-container m-4 rounded-lg overflow-hidden">
             <SmartChart 
-              transactions={transactions || []} 
               goals={goals}
-              timeRange={timeRange} 
-              isLoading={isLoading} 
             />
           </div>
         </CardContent>

@@ -276,6 +276,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ohlc_data: {
+        Row: {
+          accumulated_balance: number
+          close: number
+          created_at: string
+          date: string
+          high: number
+          id: string
+          low: number
+          open: number
+          transaction_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accumulated_balance: number
+          close: number
+          created_at?: string
+          date: string
+          high: number
+          id?: string
+          low: number
+          open: number
+          transaction_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accumulated_balance?: number
+          close?: number
+          created_at?: string
+          date?: string
+          high?: number
+          id?: string
+          low?: number
+          open?: number
+          transaction_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active_theme: string | null
@@ -717,6 +759,14 @@ export type Database = {
       }
       mark_message_as_read_v2: {
         Args: { p_message_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      recalculate_ohlc_cascade: {
+        Args: { p_from_date: string; p_user_id: string }
+        Returns: undefined
+      }
+      recalculate_ohlc_for_date: {
+        Args: { p_date: string; p_user_id: string }
         Returns: undefined
       }
       reject_friend_request: {
