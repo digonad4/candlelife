@@ -1,15 +1,13 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { GoogleChartWrapperChartType } from "react-google-charts";
 
 type Transaction = {
   date: string;
   amount: number;
 };
 
-export function useTransactionData(chartType: GoogleChartWrapperChartType, timeRange: string, startDateISO?: string, endDateISO?: string) {
+export function useTransactionData(chartType: string, timeRange: string, startDateISO?: string, endDateISO?: string) {
   const { user } = useAuth();
 
   return useQuery({

@@ -6,11 +6,9 @@ import {
   TrendingDown,
   Users,
   Settings,
-  MessageSquare,
   Flame,
   LogOut,
   Target,
-  Globe,
   TrendingUp,
   Brain,
 } from "lucide-react";
@@ -62,8 +60,6 @@ export function AppSidebar() {
 
   const managementMenuItems = [
     { icon: Users, label: "Clientes", href: "/clients" },
-    { icon: Globe, label: "Comunidade", href: "/social" },
-    { icon: MessageSquare, label: "Chat", href: "/chat" },
   ];
 
   const systemMenuItems = [
@@ -140,8 +136,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton 
                     asChild 
-                    isActive={location.pathname === item.href || 
-                             (item.href === "/chat" && location.pathname.startsWith("/chat"))}
+                    isActive={location.pathname === item.href}
                     className="w-full justify-start gap-3 px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
                   >
                     <Link to={item.href} className="flex items-center gap-3">

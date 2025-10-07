@@ -4,11 +4,9 @@ import {
   CreditCard, 
   Target, 
   Users, 
-  MessageSquare, 
   Settings, 
   TrendingDown,
   Receipt,
-  Globe,
   TrendingUp,
   MoreHorizontal,
   LogOut,
@@ -19,7 +17,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNative } from "@/hooks/useNative";
-import { useAdvancedMessages } from "@/hooks/useAdvancedMessages";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -38,12 +35,9 @@ export const ProfessionalMobileNav = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { hapticFeedback, isNative } = useNative();
-  const { getTotalUnreadCount } = useAdvancedMessages();
   const { signOut } = useAuth();
   const { toast } = useToast();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const totalUnreadMessages = getTotalUnreadCount();
 
   // Core navigation - most used features
   const coreNavItems = [
@@ -65,19 +59,11 @@ export const ProfessionalMobileNav = () => {
       href: "/goals",
       gradient: "from-amber-500 to-orange-600"
     },
-    { 
-      icon: MessageSquare, 
-      label: "Chat", 
-      href: "/chat",
-      gradient: "from-purple-500 to-pink-600",
-      badge: totalUnreadMessages > 0 ? (totalUnreadMessages > 99 ? "99+" : totalUnreadMessages.toString()) : undefined
-    },
   ];
 
   // Secondary features
   const secondaryNavItems = [
     { icon: Users, label: "Clientes", href: "/clients" },
-    { icon: Globe, label: "Comunidade", href: "/social" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
     { icon: Settings, label: "Configurações", href: "/settings" },
@@ -143,16 +129,6 @@ export const ProfessionalMobileNav = () => {
                     "h-5 w-5 transition-all duration-300", 
                     isActive && "scale-110"
                   )} />
-                  
-                  {/* Badge for notifications */}
-                  {item.badge && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] font-bold animate-pulse"
-                    >
-                      {item.badge}
-                    </Badge>
-                  )}
                 </div>
                 
                 <span className={cn(
@@ -179,9 +155,6 @@ export const ProfessionalMobileNav = () => {
               >
                 <div className="p-2 rounded-full transition-all duration-300 group-hover:bg-accent/20">
                   <MoreHorizontal className="h-5 w-5" />
-                  {totalUnreadMessages > 0 && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full animate-pulse" />
-                  )}
                 </div>
                 <span className="text-xs font-medium mt-1 group-hover:text-foreground">Mais</span>
               </button>

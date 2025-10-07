@@ -1,60 +1,36 @@
-
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { 
-  Moon, Sun, Palette, Zap, Ghost, Mountain, Coffee, 
-  PaintBucket, Sunset, Leaf, Waves, Sparkles, Clock, 
-  Crown, Terminal, Monitor, Database
-} from "lucide-react";
+import { Moon, Sun, Monitor, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUnifiedTheme } from "@/context/UnifiedThemeContext";
 
-// Group themes by category for better organization
-const themeCategories = [
-  {
-    name: "Básicos",
-    themes: [
-      { id: "light", name: "Claro", icon: Sun },
-      { id: "dark", name: "Escuro", icon: Moon },
-      { id: "system", name: "Sistema", icon: Monitor },
-    ]
+const themes = [
+  { 
+    id: "supabase", 
+    name: "Supabase", 
+    icon: Database,
+    description: "Preto puro com verde neon - Tema padrão"
   },
-  {
-    name: "Coloridos",
-    themes: [
-      { id: "purple", name: "Roxo", icon: PaintBucket },
-      { id: "green", name: "Verde", icon: Leaf },
-      { id: "ocean", name: "Oceano", icon: Waves },
-      { id: "sunset", name: "Pôr do Sol", icon: Sunset },
-      { id: "forest", name: "Floresta", icon: Leaf },
-      { id: "coffee", name: "Café", icon: Coffee },
-    ]
+  { 
+    id: "dark", 
+    name: "Escuro", 
+    icon: Moon,
+    description: "Tema escuro profissional"
   },
-  {
-    name: "Temáticos",
-    themes: [
-      { id: "dracula", name: "Dracula", icon: Ghost },
-      { id: "nord", name: "Nord", icon: Mountain },
-      { id: "cyberpunk", name: "Cyberpunk", icon: Zap },
-      { id: "super-hacker", name: "Matrix", icon: Terminal },
-      { id: "supabase", name: "Supabase", icon: Database },
-      { id: "royal", name: "Real", icon: Crown },
-    ]
+  { 
+    id: "light", 
+    name: "Claro", 
+    icon: Sun,
+    description: "Tema claro profissional"
   },
-  {
-    name: "Especiais",
-    themes: [
-      { id: "pastel", name: "Pastel", icon: Sparkles },
-      { id: "neon", name: "Neon", icon: Zap },
-      { id: "vintage", name: "Vintage", icon: Clock },
-      { id: "midnight", name: "Meia-noite", icon: Moon },
-    ]
-  }
+  { 
+    id: "system", 
+    name: "Sistema", 
+    icon: Monitor,
+    description: "Segue o tema do sistema operacional"
+  },
 ];
-
-// Flatten all themes for easier reference
-const allThemes = themeCategories.flatMap(category => category.themes);
 
 export const UnifiedThemeSettings = () => {
   const { theme, setTheme, isUpdating } = useUnifiedTheme();
@@ -62,7 +38,7 @@ export const UnifiedThemeSettings = () => {
   const [selectedTheme, setSelectedTheme] = useState(theme);
 
   const updateTheme = async (newTheme: string) => {
-    const themeName = allThemes.find(t => t.id === newTheme)?.name.toLowerCase() || newTheme;
+    const themeData = themes.find(t => t.id === newTheme);
     
     try {
       setSelectedTheme(newTheme as any);
@@ -70,7 +46,7 @@ export const UnifiedThemeSettings = () => {
       
       toast({
         title: "Tema alterado",
-        description: `O tema foi alterado para ${themeName}.`,
+        description: `Tema alterado para ${themeData?.name}.`,
       });
     } catch (error) {
       console.error("Erro ao atualizar tema:", error);
@@ -85,44 +61,48 @@ export const UnifiedThemeSettings = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold mb-2">Personalização</h2>
+        <h2 className="text-xl font-bold mb-2">Tema do Aplicativo</h2>
         <p className="text-sm text-muted-foreground">
-          Escolha o tema que melhor combina com você. Experimente o novo tema Supabase!
+          Escolha o tema visual do aplicativo. O tema Supabase oferece uma experiência única com preto puro e verde neon.
         </p>
       </div>
 
-      <div className="space-y-6">
-        {themeCategories.map((category) => (
-          <div key={category.name} className="space-y-3">
-            <h3 className="text-base font-medium">{category.name}</h3>
-            <RadioGroup
-              value={selectedTheme}
-              onValueChange={updateTheme}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
-              disabled={isUpdating}
-            >
-              {category.themes.map(({ id, name, icon: Icon }) => (
-                <Label
-                  key={id}
-                  htmlFor={id}
-                  className={`flex items-center space-x-3 border rounded-lg p-3 cursor-pointer hover:bg-accent transition-colors ${
-                    selectedTheme === id ? "border-primary bg-accent/50" : "border-input"
-                  } ${isUpdating ? "opacity-50" : ""}`}
-                >
-                  <RadioGroupItem value={id} id={id} disabled={isUpdating} />
-                  <Icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{name}</span>
-                  {id === "supabase" && (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                      Novo
-                    </span>
-                  )}
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
+      <RadioGroup
+        value={selectedTheme}
+        onValueChange={updateTheme}
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        disabled={isUpdating}
+      >
+        {themes.map(({ id, name, icon: Icon, description }) => (
+          <Label
+            key={id}
+            htmlFor={id}
+            className={`flex flex-col space-y-3 border rounded-lg p-4 cursor-pointer hover:bg-accent transition-all ${
+              selectedTheme === id ? "border-primary bg-accent/50 shadow-lg" : "border-input"
+            } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            <div className="flex items-center space-x-3">
+              <RadioGroupItem value={id} id={id} disabled={isUpdating} />
+              <Icon className="w-5 h-5" />
+              <span className="text-sm font-semibold">{name}</span>
+              {id === "supabase" && (
+                <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full ml-auto">
+                  Padrão
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground pl-9">
+              {description}
+            </p>
+          </Label>
         ))}
-      </div>
+      </RadioGroup>
+
+      {isUpdating && (
+        <p className="text-sm text-muted-foreground text-center">
+          Aplicando tema...
+        </p>
+      )}
     </div>
   );
 };

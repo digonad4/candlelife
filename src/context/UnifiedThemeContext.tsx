@@ -1,9 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 
-type Theme = "light" | "dark" | "system" | "cyberpunk" | "dracula" | "nord" | "purple" | "green" | "ocean" | "sunset" | "forest" | "coffee" | "pastel" | "neon" | "vintage" | "midnight" | "royal" | "super-hacker" | "supabase";
+type Theme = "supabase" | "dark" | "light" | "system";
 
 interface UnifiedThemeContextType {
   theme: Theme;
@@ -13,10 +12,10 @@ interface UnifiedThemeContextType {
 }
 
 const UnifiedThemeContext = createContext<UnifiedThemeContextType>({
-  theme: "light",
+  theme: "supabase",
   setTheme: async () => {},
   isUpdating: false,
-  appliedTheme: "light",
+  appliedTheme: "supabase",
 });
 
 export const useUnifiedTheme = () => {
@@ -33,24 +32,20 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
   const [isUpdating, setIsUpdating] = useState(false);
   const [appliedTheme, setAppliedTheme] = useState<Theme>(theme);
 
-  // Initialize and load theme
+  // Initialize theme
   useEffect(() => {
-    const initializeTheme = () => {
-      const savedTheme = localStorage.getItem("theme") as Theme;
-      const defaultTheme: Theme = "supabase";
-      
-      if (!savedTheme) {
-        setThemeState(defaultTheme);
-        localStorage.setItem("theme", defaultTheme);
-      } else {
-        setThemeState(savedTheme);
-      }
-    };
-
-    initializeTheme();
+    const savedTheme = localStorage.getItem("theme") as Theme;
+    const defaultTheme: Theme = "supabase";
+    
+    if (!savedTheme) {
+      setThemeState(defaultTheme);
+      localStorage.setItem("theme", defaultTheme);
+    } else {
+      setThemeState(savedTheme);
+    }
   }, []);
 
-  // Load user's theme preference from Supabase when signed in
+  // Load user's theme from database
   useEffect(() => {
     const loadUserTheme = async () => {
       if (user) {
@@ -59,9 +54,9 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
             .from('user_themes')
             .select('theme_name')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
           
-          if (error && error.code !== 'PGRST116') {
+          if (error) {
             console.error("Error loading user theme:", error);
             return;
           }
@@ -71,10 +66,16 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
             setThemeState(userTheme);
             localStorage.setItem("theme", userTheme);
           } else {
-            // First time user - set default theme
-            const defaultTheme: Theme = "supabase";
-            setThemeState(defaultTheme);
-            localStorage.setItem("theme", defaultTheme);
+            // First login - create default theme
+            await supabase
+              .from('user_themes')
+              .insert({
+                user_id: user.id,
+                theme_name: "supabase",
+                updated_at: new Date().toISOString()
+              });
+            setThemeState("supabase");
+            localStorage.setItem("theme", "supabase");
           }
         } catch (error) {
           console.error("Error loading user theme:", error);
@@ -95,21 +96,18 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
     return currentTheme;
   }, []);
 
-  // Apply theme to document
+  // Apply theme
   useEffect(() => {
     const resolved = resolveTheme(theme);
     setAppliedTheme(resolved);
     
-    // Remove all existing theme classes
     document.documentElement.className = document.documentElement.className
       .replace(/\bdark\b/g, '')
       .replace(/\blight\b/g, '')
       .trim();
     
-    // Set the data-theme attribute for custom themes
     document.documentElement.setAttribute("data-theme", resolved);
     
-    // Handle basic light/dark mode for compatibility
     if (resolved === "dark") {
       document.documentElement.classList.add("dark");
     } else if (resolved === "light") {
@@ -125,7 +123,6 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
         const resolved = resolveTheme(theme);
         setAppliedTheme(resolved);
         
-        // Remove all existing theme classes
         document.documentElement.className = document.documentElement.className
           .replace(/\bdark\b/g, '')
           .replace(/\blight\b/g, '')
@@ -153,21 +150,17 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
       setThemeState(newTheme);
       localStorage.setItem("theme", newTheme);
       
-      // If user is authenticated, save their preference to their profile
       if (user) {
-        // Use upsert to insert or update the theme preference
-        const { error } = await supabase
+        await supabase
           .from('user_themes')
           .upsert({
             user_id: user.id,
             theme_name: newTheme,
             updated_at: new Date().toISOString()
           });
-          
-        if (error) throw error;
       }
     } catch (error) {
-      console.error("Error saving theme preference:", error);
+      console.error("Error saving theme:", error);
     } finally {
       setIsUpdating(false);
     }

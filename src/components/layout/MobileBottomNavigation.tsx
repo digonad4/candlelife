@@ -5,11 +5,9 @@ import {
   CreditCard, 
   Target, 
   Users, 
-  MessageSquare, 
   Settings, 
   TrendingDown,
   Receipt,
-  Globe,
   TrendingUp,
   MoreHorizontal,
   LogOut
@@ -17,8 +15,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNative } from "@/hooks/useNative";
-import { useAdvancedMessages } from "@/hooks/useAdvancedMessages";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -34,12 +30,9 @@ export const MobileBottomNavigation = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { hapticFeedback, isNative } = useNative();
-  const { getTotalUnreadCount } = useAdvancedMessages();
   const { signOut } = useAuth();
   const { toast } = useToast();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const totalUnreadMessages = getTotalUnreadCount();
 
   // Principais páginas na navegação inferior
   const mainNavItems = [
@@ -51,14 +44,7 @@ export const MobileBottomNavigation = () => {
 
   // Páginas secundárias no drawer
   const secondaryNavItems = [
-    { 
-      icon: MessageSquare, 
-      label: "Chat", 
-      href: "/chat",
-      badge: totalUnreadMessages > 0 ? (totalUnreadMessages > 99 ? "99+" : totalUnreadMessages.toString()) : undefined
-    },
-    { icon: Globe, label: "Comunidade", href: "/social" },
-    { icon: TrendingUp, label: "Receitas", href: "/transactions" },
+    { icon: TrendingUp, label: "Receitas", href: "/transactions?type=income" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
     { icon: Settings, label: "Configurações", href: "/settings" },
@@ -132,14 +118,6 @@ export const MobileBottomNavigation = () => {
             >
               <MoreHorizontal className="h-5 w-5 mb-1" />
               <span className="text-xs font-medium">Mais</span>
-              {totalUnreadMessages > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs min-w-[16px] text-[10px]"
-                >
-                  {totalUnreadMessages > 99 ? "99+" : totalUnreadMessages}
-                </Badge>
-              )}
             </button>
           </DrawerTrigger>
           <DrawerContent className="bg-background/95 backdrop-blur-md border-t border-border/50">
@@ -148,8 +126,7 @@ export const MobileBottomNavigation = () => {
             </DrawerHeader>
             <div className="p-4 space-y-2 pb-8">
               {secondaryNavItems.map((item) => {
-                const isActive = location.pathname === item.href || 
-                                (item.href === "/chat" && location.pathname.startsWith("/chat"));
+                const isActive = location.pathname === item.href;
                 
                 return (
                   <Link
@@ -168,14 +145,6 @@ export const MobileBottomNavigation = () => {
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="font-medium">{item.label}</span>
-                    {item.badge && (
-                      <Badge 
-                        variant="destructive" 
-                        className="ml-auto h-5 w-5 p-0 flex items-center justify-center text-xs"
-                      >
-                        {item.badge}
-                      </Badge>
-                    )}
                   </Link>
                 );
               })}

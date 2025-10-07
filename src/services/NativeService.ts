@@ -2,7 +2,6 @@
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
-import { SplashScreen } from '@capacitor/splash-screen';
 import { Share } from '@capacitor/share';
 import { Toast } from '@capacitor/toast';
 import { Device } from '@capacitor/device';
@@ -26,9 +25,7 @@ class NativeService {
     try {
       // Configurar status bar
       await StatusBar.setStyle({ style: Style.Dark });
-      await StatusBar.setBackgroundColor({ color: '#8B5CF6' });
-
-      // Splash screen desativado - não é necessário
+      await StatusBar.setBackgroundColor({ color: '#000000' });
 
       // Configurar teclado
       Keyboard.addListener('keyboardWillShow', (info) => {
