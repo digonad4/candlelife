@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ProfessionalCandlestickChart } from "@/components/chart/ProfessionalCandlestickChart";
 import { ChartGoalModal } from "@/components/chart/ChartGoalModal";
+import { TimeRangeSelector } from "@/components/chart/TimeRangeSelector";
 import { FinancialGoal } from "@/hooks/useGoals";
 import { useOHLCData } from "@/hooks/useOHLCData";
 import { useGoals } from "@/hooks/useGoals";
@@ -13,7 +14,8 @@ interface SmartChartProps {
 }
 
 export function SmartChart({ goals, startDate, endDate }: SmartChartProps) {
-  const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate);
+  const [timeRange, setTimeRange] = useState<"individual" | "daily" | "weekly" | "monthly" | "yearly">("individual");
+  const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate, timeRange);
   const { createGoal } = useGoals();
   const { toast } = useToast();
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -90,7 +92,13 @@ export function SmartChart({ goals, startDate, endDate }: SmartChartProps) {
 
   return (
     <>
-      <div className="relative h-full">
+      <div className="relative h-full space-y-4">
+        <div className="flex justify-end">
+          <TimeRangeSelector 
+            timeRange={timeRange}
+            onTimeRangeChange={setTimeRange}
+          />
+        </div>
         <ProfessionalCandlestickChart 
           data={chartData}
           goals={chartGoals}

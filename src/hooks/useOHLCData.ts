@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear, format } from "date-fns";
 
 interface OHLCData {
   date: string;
@@ -13,11 +13,13 @@ interface OHLCData {
   transaction_count: number;
 }
 
-export function useOHLCData(startDate?: Date, endDate?: Date) {
+type TimeRange = "individual" | "daily" | "weekly" | "monthly" | "yearly";
+
+export function useOHLCData(startDate?: Date, endDate?: Date, timeRange: TimeRange = "individual") {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["ohlc-data", user?.id, startDate?.toISOString(), endDate?.toISOString()],
+    queryKey: ["ohlc-data", user?.id, startDate?.toISOString(), endDate?.toISOString(), timeRange],
     queryFn: async () => {
       if (!user) return [];
 
@@ -42,9 +44,62 @@ export function useOHLCData(startDate?: Date, endDate?: Date) {
         throw error;
       }
 
-      return (data || []) as OHLCData[];
+      const ohlcData = (data || []) as OHLCData[];
+
+      // Se for individual, retorna direto os dados diários
+      if (timeRange === "individual" || timeRange === "daily") {
+        return ohlcData;
+      }
+
+      // Agregação por período
+      return aggregateByPeriod(ohlcData, timeRange);
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 }
+
+function aggregateByPeriod(data: OHLCData[], timeRange: TimeRange): OHLCData[] {
+  if (data.length === 0) return [];
+
+  const grouped = new Map<string, OHLCData[]>();
+
+  data.forEach(item => {
+    const date = new Date(item.date);
+    let key: string;
+
+    switch (timeRange) {
+      case "weekly":
+        key = format(startOfWeek(date), "yyyy-MM-dd");
+        break;
+      case "monthly":
+        key = format(startOfMonth(date), "yyyy-MM-dd");
+        break;
+      case "yearly":
+        key = format(startOfYear(date), "yyyy-MM-dd");
+        break;
+      default:
+        key = item.date;
+    }
+
+    if (!grouped.has(key)) {
+      grouped.set(key, []);
+    }
+    grouped.get(key)!.push(item);
+  });
+
+  return Array.from(grouped.entries()).map(([date, items]) => {
+    items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    return {
+      date,
+      open: items[0].open,
+      high: Math.max(...items.map(i => i.high)),
+      low: Math.min(...items.map(i => i.low)),
+      close: items[items.length - 1].close,
+      accumulated_balance: items[items.length - 1].accumulated_balance,
+      transaction_count: items.reduce((sum, i) => sum + i.transaction_count, 0)
+    };
+  });
+}
+

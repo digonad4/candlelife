@@ -1,13 +1,15 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, Edit, Trash2, Search, CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Eye, Edit, Trash2, Search, CreditCard, AlertCircle } from "lucide-react";
 import { ClientTransactionsDialog } from "./ClientTransactionsDialog";
+import { useClientDebts } from "@/hooks/useClientDebts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,7 +60,33 @@ export function ClientsList({ onEditClient }: ClientsListProps) {
     enabled: !!user
   });
 
-  const filteredClients = clients?.filter(client => 
+  const { data: clientDebts } = useClientDebts();
+
+  const clientsWithDebts = useMemo(() => {
+    if (!clients) return [];
+    
+    return clients.map(client => {
+      const debt = clientDebts?.find(d => d.client_id === client.id);
+      return {
+        ...client,
+        total_debt: debt?.total_debt || 0,
+        overdue_count: debt?.overdue_count || 0,
+        has_debt: (debt?.total_debt || 0) > 0
+      };
+    }).sort((a, b) => {
+      // Clientes em dívida primeiro
+      if (a.has_debt && !b.has_debt) return -1;
+      if (!a.has_debt && b.has_debt) return 1;
+      // Depois por maior dívida
+      if (a.has_debt && b.has_debt) {
+        return b.total_debt - a.total_debt;
+      }
+      // Por último, ordem alfabética
+      return a.name.localeCompare(b.name);
+    });
+  }, [clients, clientDebts]);
+
+  const filteredClients = clientsWithDebts?.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (client.document && client.document.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -147,15 +175,37 @@ export function ClientsList({ onEditClient }: ClientsListProps) {
         {filteredClients?.map((client) => (
           <div
             key={client.id}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-xl border border-border bg-card hover:bg-accent/20 transition-colors"
+            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-xl border transition-all ${
+              client.has_debt 
+                ? "border-destructive/50 bg-destructive/5 shadow-lg" 
+                : "border-border bg-card hover:bg-accent/20"
+            }`}
           >
-            <div className="mb-3 sm:mb-0">
-              <h3 className="font-semibold text-card-foreground">{client.name}</h3>
+            <div className="mb-3 sm:mb-0 flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="font-semibold text-card-foreground">{client.name}</h3>
+                {client.has_debt && (
+                  <Badge variant="destructive" className="flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Em dívida
+                  </Badge>
+                )}
+              </div>
               <div className="text-sm text-muted-foreground">
                 {client.document && <p>Documento: {client.document}</p>}
                 {client.email && <p>Email: {client.email}</p>}
                 {client.phone && <p>Telefone: {client.phone}</p>}
               </div>
+              {client.has_debt && (
+                <div className="mt-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="text-sm font-semibold text-destructive">
+                    Dívida (últimos 30 dias): {client.total_debt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {client.overdue_count} {client.overdue_count === 1 ? 'fatura pendente' : 'faturas pendentes'}
+                  </p>
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button

@@ -56,7 +56,7 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
             .eq('user_id', user.id)
             .maybeSingle();
           
-          if (error) {
+          if (error && error.code !== 'PGRST116') {
             console.error("Error loading user theme:", error);
             return;
           }
@@ -66,14 +66,7 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
             setThemeState(userTheme);
             localStorage.setItem("theme", userTheme);
           } else {
-            // First login - create default theme
-            await supabase
-              .from('user_themes')
-              .insert({
-                user_id: user.id,
-                theme_name: "supabase",
-                updated_at: new Date().toISOString()
-              });
+            // First login or no theme - use default
             setThemeState("supabase");
             localStorage.setItem("theme", "supabase");
           }
@@ -151,13 +144,19 @@ export const UnifiedThemeProvider = ({ children }: { children: React.ReactNode }
       localStorage.setItem("theme", newTheme);
       
       if (user) {
-        await supabase
+        const { error } = await supabase
           .from('user_themes')
           .upsert({
             user_id: user.id,
             theme_name: newTheme,
             updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
           });
+          
+        if (error) {
+          console.error("Error saving theme to database:", error);
+        }
       }
     } catch (error) {
       console.error("Error saving theme:", error);

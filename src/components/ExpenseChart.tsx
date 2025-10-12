@@ -11,7 +11,7 @@ interface ExpenseChartProps {
 
 export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
   const { chartGoals } = useGoals();
-  const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate);
+  const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate, "individual");
   const periodLabel = usePeriodLabel(startDate, endDate);
 
   // Transformar dados OHLC em formato do gráfico
