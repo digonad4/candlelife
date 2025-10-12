@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/drawer";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FloatingActionButton } from "./FloatingActionButton";
 
 export const ProfessionalMobileNav = () => {
   const location = useLocation();
@@ -95,9 +94,6 @@ export const ProfessionalMobileNav = () => {
 
   return (
     <>
-      {/* Floating Action Button */}
-      <FloatingActionButton />
-
       {/* Professional Bottom Navigation */}
       <div className={`fixed bottom-0 left-0 right-0 z-40 mobile-nav-modern ${
         isNative ? 'safe-area-bottom pb-2' : 'pb-2'

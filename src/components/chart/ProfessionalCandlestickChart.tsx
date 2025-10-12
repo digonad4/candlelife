@@ -105,6 +105,18 @@ export function ProfessionalCandlestickChart({ data, goals = [], onClickValue }:
 
     candlestickSeries.setData(candleData);
 
+    // Add click handler for creating goals
+    if (onClickValue) {
+      chart.subscribeClick((param) => {
+        if (param.time !== undefined) {
+          const price = param.seriesData.get(candlestickSeries);
+          if (price && typeof price === 'object' && 'close' in price) {
+            onClickValue(price.close as number);
+          }
+        }
+      });
+    }
+
     // Adicionar linhas de meta
     goals.forEach(goal => {
       const priceLine = candlestickSeries.createPriceLine({

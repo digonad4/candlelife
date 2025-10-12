@@ -1,7 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ProfessionalCandlestickChart } from "@/components/chart/ProfessionalCandlestickChart";
+import { ChartGoalModal } from "@/components/chart/ChartGoalModal";
 import { FinancialGoal } from "@/hooks/useGoals";
 import { useOHLCData } from "@/hooks/useOHLCData";
+import { useGoals } from "@/hooks/useGoals";
+import { useToast } from "@/hooks/use-toast";
 
 interface SmartChartProps {
   goals: FinancialGoal[];
@@ -11,6 +14,10 @@ interface SmartChartProps {
 
 export function SmartChart({ goals, startDate, endDate }: SmartChartProps) {
   const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate);
+  const { createGoal } = useGoals();
+  const { toast } = useToast();
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [clickedValue, setClickedValue] = useState(0);
 
   const { chartData, chartGoals } = useMemo(() => {
     if (!ohlcData || ohlcData.length === 0) {
@@ -59,12 +66,44 @@ export function SmartChart({ goals, startDate, endDate }: SmartChartProps) {
     );
   }
 
+  const handleClickValue = (value: number) => {
+    setClickedValue(value);
+    setIsGoalModalOpen(true);
+  };
+
+  const handleCreateGoal = (data: { goal_type: "support" | "resistance"; value: number; label?: string }) => {
+    createGoal({
+      goal_type: "custom_goal",
+      target_amount: data.value,
+      description: data.label || `Meta de ${data.goal_type === 'support' ? 'Suporte' : 'Resistência'}`,
+      display_on_chart: true,
+      chart_line_type: data.goal_type,
+    });
+    
+    toast({
+      title: "Meta criada com sucesso!",
+      description: `Meta de ${data.goal_type === 'support' ? 'suporte' : 'resistência'} adicionada ao gráfico.`,
+    });
+    
+    setIsGoalModalOpen(false);
+  };
+
   return (
-    <div className="relative h-full">
-      <ProfessionalCandlestickChart 
-        data={chartData}
-        goals={chartGoals}
+    <>
+      <div className="relative h-full">
+        <ProfessionalCandlestickChart 
+          data={chartData}
+          goals={chartGoals}
+          onClickValue={handleClickValue}
+        />
+      </div>
+      
+      <ChartGoalModal
+        isOpen={isGoalModalOpen}
+        onClose={() => setIsGoalModalOpen(false)}
+        onCreateGoal={handleCreateGoal}
+        clickedValue={clickedValue}
       />
-    </div>
+    </>
   );
 }
