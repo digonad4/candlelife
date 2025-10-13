@@ -54,7 +54,6 @@ export function AppSidebar() {
     { icon: TrendingUp, label: "Receitas", href: "/transactions?type=income" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
-    { icon: Target, label: "Metas", href: "/goals" },
     { icon: Brain, label: "Analytics IA", href: "/analytics" },
   ];
 

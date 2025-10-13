@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowUpIcon, ArrowDownIcon, TrendingUp } from "lucide-react";
 import { Client } from "@/types/client";
-import { FinancialGoal } from "@/hooks/useGoals";
 
 type PaymentMethod = 'pix' | 'cash' | 'invoice';
 
@@ -22,11 +21,8 @@ export interface ExpenseFormProps {
   setType: (type: "expense" | "income" | "investment") => void;
   clientId: string | null;
   setClientId: (id: string | null) => void;
-  goalId?: string | null;
-  setGoalId?: (id: string | null) => void;
   isLoading: boolean;
   clients?: Client[];
-  goals?: FinancialGoal[];
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -41,11 +37,8 @@ export function ExpenseForm({
   setType,
   clientId,
   setClientId,
-  goalId,
-  setGoalId,
   isLoading,
   clients,
-  goals,
   onSubmit
 }: ExpenseFormProps) {
   return (
@@ -130,25 +123,6 @@ export function ExpenseForm({
           className="focus:border-primary text-base"
         />
       </div>
-
-      {type === "investment" && goals && goals.length > 0 && setGoalId && (
-        <div className="space-y-2">
-          <Label htmlFor="goal">Meta Financeira (Opcional)</Label>
-          <Select value={goalId || 'none'} onValueChange={(value) => setGoalId(value === 'none' ? null : value)}>
-            <SelectTrigger className="border-blue-200 focus:border-blue-500">
-              <SelectValue placeholder="Selecione uma meta para vincular este investimento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Nenhuma meta</SelectItem>
-              {goals.map((goal) => (
-                <SelectItem key={goal.id} value={goal.id}>
-                  <span className="truncate">{goal.description || `Meta de ${goal.goal_type}`}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
 
       <div className="space-y-2">
         <Label htmlFor="paymentMethod">Forma de Pagamento</Label>

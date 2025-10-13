@@ -15,12 +15,10 @@ import {
   Sparkles
 } from "lucide-react";
 import { SmartChart } from "./SmartChart";
-import { useGoals } from "@/hooks/useGoals";
 import { useSmartAlerts } from "@/hooks/useSmartAlerts";
 import { cn } from "@/lib/utils";
 
 export function TradingDashboard() {
-  const { goals } = useGoals();
   const { insights, spendingAnalysis, alerts, unreadCount } = useSmartAlerts();
 
   // Calculate key metrics
@@ -154,9 +152,7 @@ export function TradingDashboard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="h-[500px] chart-container m-4 rounded-lg overflow-hidden">
-            <SmartChart 
-              goals={goals}
-            />
+            <SmartChart />
           </div>
         </CardContent>
       </Card>
@@ -184,39 +180,19 @@ export function TradingDashboard() {
           </CardContent>
         </Card>
 
-        {/* Goals Progress */}
+        {/* Quick Insights */}
         <Card className="trading-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
-              Progresso das Metas
-              <Badge variant="outline" className="ml-auto">
-                {goals.length} ativas
-              </Badge>
+              Resumo Financeiro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {goals.slice(0, 4).map((goal) => {
-                const progress = ((goal.current_amount || 0) / goal.amount) * 100;
-                return (
-                  <div key={goal.id} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium truncate">{goal.description}</span>
-                      <span className="text-xs text-muted-foreground">{progress.toFixed(1)}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className={cn(
-                          "h-2 rounded-full transition-all duration-300",
-                          goal.goal_type === 'investment_goal' ? "bg-blue-500" : "bg-orange-500"
-                        )}
-                        style={{ width: `${Math.min(progress, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="space-y-4 text-center py-8">
+              <p className="text-sm text-muted-foreground">
+                Acompanhe seus insights financeiros através dos alertas inteligentes acima
+              </p>
             </div>
           </CardContent>
         </Card>

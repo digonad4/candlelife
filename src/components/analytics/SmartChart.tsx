@@ -1,53 +1,31 @@
 import { useMemo, useState } from "react";
 import { ProfessionalCandlestickChart } from "@/components/chart/ProfessionalCandlestickChart";
-import { ChartGoalModal } from "@/components/chart/ChartGoalModal";
 import { TimeRangeSelector } from "@/components/chart/TimeRangeSelector";
-import { FinancialGoal } from "@/hooks/useGoals";
 import { useOHLCData } from "@/hooks/useOHLCData";
-import { useGoals } from "@/hooks/useGoals";
-import { useToast } from "@/hooks/use-toast";
 
 interface SmartChartProps {
-  goals: FinancialGoal[];
   startDate?: Date;
   endDate?: Date;
 }
 
-export function SmartChart({ goals, startDate, endDate }: SmartChartProps) {
+export function SmartChart({ startDate, endDate }: SmartChartProps) {
   const [timeRange, setTimeRange] = useState<"individual" | "daily" | "weekly" | "monthly" | "yearly">("individual");
   const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate, timeRange);
-  const { createGoal } = useGoals();
-  const { toast } = useToast();
-  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
-  const [clickedValue, setClickedValue] = useState(0);
 
-  const { chartData, chartGoals } = useMemo(() => {
+  const chartData = useMemo(() => {
     if (!ohlcData || ohlcData.length === 0) {
-      return {
-        chartData: [],
-        chartGoals: []
-      };
+      return [];
     }
 
     // Dados OHLC já vêm calculados do banco
-    const candleData = ohlcData.map(d => ({
+    return ohlcData.map(d => ({
       date: d.date,
       open: Number(d.open),
       high: Number(d.high),
       low: Number(d.low),
       close: Number(d.close)
     }));
-
-    const chartGoals = goals
-      .filter(goal => goal.display_on_chart)
-      .map(goal => ({
-        value: goal.target_amount,
-        type: (goal.chart_line_type === 'resistance' ? 'resistance' : 'support') as 'support' | 'resistance',
-        label: goal.description || `Meta: R$ ${goal.target_amount.toFixed(2)}`,
-      }));
-
-    return { chartData: candleData, chartGoals };
-  }, [ohlcData, goals]);
+  }, [ohlcData]);
 
   if (isLoading) {
     return (
@@ -68,50 +46,18 @@ export function SmartChart({ goals, startDate, endDate }: SmartChartProps) {
     );
   }
 
-  const handleClickValue = (value: number) => {
-    setClickedValue(value);
-    setIsGoalModalOpen(true);
-  };
-
-  const handleCreateGoal = (data: { goal_type: "support" | "resistance"; value: number; label?: string }) => {
-    createGoal({
-      goal_type: "custom_goal",
-      target_amount: data.value,
-      description: data.label || `Meta de ${data.goal_type === 'support' ? 'Suporte' : 'Resistência'}`,
-      display_on_chart: true,
-      chart_line_type: data.goal_type,
-    });
-    
-    toast({
-      title: "Meta criada com sucesso!",
-      description: `Meta de ${data.goal_type === 'support' ? 'suporte' : 'resistência'} adicionada ao gráfico.`,
-    });
-    
-    setIsGoalModalOpen(false);
-  };
-
   return (
-    <>
-      <div className="relative h-full space-y-4">
-        <div className="flex justify-end">
-          <TimeRangeSelector 
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
-          />
-        </div>
-        <ProfessionalCandlestickChart 
-          data={chartData}
-          goals={chartGoals}
-          onClickValue={handleClickValue}
+    <div className="relative h-full space-y-4">
+      <div className="flex justify-end">
+        <TimeRangeSelector 
+          timeRange={timeRange}
+          onTimeRangeChange={setTimeRange}
         />
       </div>
-      
-      <ChartGoalModal
-        isOpen={isGoalModalOpen}
-        onClose={() => setIsGoalModalOpen(false)}
-        onCreateGoal={handleCreateGoal}
-        clickedValue={clickedValue}
+      <ProfessionalCandlestickChart 
+        data={chartData}
+        goals={[]}
       />
-    </>
+    </div>
   );
 }

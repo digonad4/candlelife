@@ -17,7 +17,6 @@ import Dashboard from "@/pages/Dashboard";
 import Transactions from "@/pages/Transactions";
 import Expenses from "@/pages/Expenses";
 import InvoicedTransactions from "@/pages/InvoicedTransactions";
-import Goals from "@/pages/Goals";
 import Clients from "@/pages/Clients";
 import Settings from "@/pages/Settings";
 import About from "@/pages/About";
@@ -60,7 +59,6 @@ function App() {
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="invoiced" element={<InvoicedTransactions />} />
-                <Route path="goals" element={<Goals />} />
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="clients" element={<Clients />} />
                 <Route path="settings" element={<Settings />} />

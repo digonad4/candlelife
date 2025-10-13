@@ -1,23 +1,14 @@
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { useFinancialData } from "@/hooks/useFinancialData";
-import { useGoals } from "@/hooks/useGoals";
-import { useGoalProgress } from "@/hooks/useGoalProgress";
-import { GoalsManager } from "@/components/goals/GoalsManager";
 import { 
   TrendingDown, 
   TrendingUp, 
-  AlertTriangle, 
   CheckCircle, 
-  Target,
   Lightbulb,
-  BarChart3,
-  DollarSign,
-  PiggyBank,
-  Trophy
+  PiggyBank
 } from "lucide-react";
 import { subMonths, format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -26,12 +17,7 @@ const formatCurrency = (value: number) =>
   `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function EnhancedFinancialInsights() {
-  const [showGoals, setShowGoals] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  
   const { data: transactions = [], isLoading } = useFinancialData();
-  const { goals } = useGoals();
-  const goalProgress = useGoalProgress(goals);
   
   const currentDate = useMemo(() => new Date(), []);
 
@@ -108,39 +94,6 @@ export function EnhancedFinancialInsights() {
       });
     }
 
-    // Goal-based insights - Updated to use correct status types
-    goalProgress.forEach(progress => {
-      const { goal, current, target, percentage, status } = progress;
-      
-      if (percentage >= 100 && status === "achieved") {
-        insights.push({
-          type: "goal_achieved",
-          title: `Meta Atingida! 🎉`,
-          description: `Você alcançou sua meta "${goal.description || 'Meta de Poupança'}" de ${formatCurrency(target)}`,
-          impact: "low",
-          icon: <Trophy className="h-5 w-5 text-green-500" />,
-        });
-      } else if (status === "behind") {
-        insights.push({
-          type: "goal_behind",
-          title: `Meta Atrasada: ${goal.description || "Meta"}`,
-          description: `Você está com ${Math.round(percentage)}% da sua meta. Precisa acelerar para atingir o objetivo.`,
-          action: "Considere aumentar as contribuições mensais ou fazer investimentos direcionados",
-          impact: "high",
-          icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-        });
-      } else if (status === "warning") {
-        insights.push({
-          type: "goal_warning",
-          title: `Atenção na Meta: ${goal.description || "Meta"}`,
-          description: `Você está com ${Math.round(percentage)}% da sua meta e o prazo está se aproximando`,
-          action: "Monitore seu progresso e considere fazer investimentos específicos para esta meta",
-          impact: "medium",
-          icon: <Target className="h-5 w-5 text-yellow-500" />,
-        });
-      }
-    });
-
     // Traditional insights
     if (currentExpenses > lastExpenses * 1.2) {
       const increase = Math.round((currentExpenses / lastExpenses - 1) * 100);
@@ -184,7 +137,7 @@ export function EnhancedFinancialInsights() {
       const impactOrder = { high: 0, medium: 1, low: 2 };
       return impactOrder[a.impact] - impactOrder[b.impact];
     });
-  }, [transactions, goalProgress, currentDate]);
+  }, [transactions, currentDate]);
 
   if (isLoading) {
     return (
@@ -202,23 +155,6 @@ export function EnhancedFinancialInsights() {
     );
   }
 
-  if (showGoals) {
-    return (
-      <div className="space-y-6">
-        <Button 
-          variant="outline" 
-          onClick={() => setShowGoals(false)}
-          className="mb-4"
-        >
-          ← Voltar aos Insights
-        </Button>
-        <GoalsManager />
-      </div>
-    );
-  }
-
-  const displayedInsights = expanded ? insights : insights.slice(0, 3);
-
   return (
     <Card>
       <CardHeader>
@@ -227,30 +163,9 @@ export function EnhancedFinancialInsights() {
             <Lightbulb className="h-5 w-5 text-yellow-500" />
             Insights Financeiros Inteligentes
           </CardTitle>
-          <Button variant="outline" size="sm" onClick={() => setShowGoals(true)}>
-            <Target className="h-4 w-4 mr-2" />
-            Gerenciar Metas
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {goals.length === 0 && (
-          <Alert className="border-l-4 border-l-blue-500">
-            <Target className="h-4 w-4" />
-            <AlertTitle>Defina suas metas financeiras</AlertTitle>
-            <AlertDescription>
-              Crie metas para receber insights personalizados sobre seu progresso financeiro.
-              <Button 
-                variant="link" 
-                className="p-0 h-auto font-normal text-primary"
-                onClick={() => setShowGoals(true)}
-              >
-                Criar primeira meta →
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
         {insights.length === 0 ? (
           <div className="text-center py-8">
             <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
@@ -261,7 +176,7 @@ export function EnhancedFinancialInsights() {
           </div>
         ) : (
           <div className="space-y-4">
-            {displayedInsights.map((insight, idx) => (
+            {insights.map((insight, idx) => (
               <Alert
                 key={idx}
                 className={
@@ -286,16 +201,6 @@ export function EnhancedFinancialInsights() {
                 </div>
               </Alert>
             ))}
-            
-            {insights.length > 3 && (
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={() => setExpanded(!expanded)}
-              >
-                {expanded ? "Ver menos" : `Ver mais ${insights.length - 3} insights`}
-              </Button>
-            )}
           </div>
         )}
       </CardContent>

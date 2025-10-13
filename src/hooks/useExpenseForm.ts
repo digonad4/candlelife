@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { Client } from "@/types/client";
-import { FinancialGoal } from "./useGoals";
 
 type PaymentMethod = 'pix' | 'cash' | 'invoice';
 
@@ -15,7 +14,6 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [type, setType] = useState<"expense" | "income" | "investment">("expense");
   const [clientId, setClientId] = useState<string | null>(null);
-  const [goalId, setGoalId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -32,23 +30,6 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
       
       if (error) throw error;
       return data as Client[];
-    },
-    enabled: !!user
-  });
-
-  const { data: goals } = useQuery({
-    queryKey: ["financial-goals", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from("financial_goals")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("active", true)
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      return data as FinancialGoal[];
     },
     enabled: !!user
   });
@@ -74,7 +55,6 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
         description,
         amount: type === "expense" ? -Math.abs(Number(amount)) : Math.abs(Number(amount)),
         client_id: clientId,
-        goal_id: type === "investment" ? goalId : null,
         type,
         user_id: user.id,
         payment_method: paymentMethod,
@@ -96,9 +76,7 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
 
       toast({
         title: "Sucesso",
-        description: `${transactionTypeLabel.charAt(0).toUpperCase() + transactionTypeLabel.slice(1)} adicionada com sucesso${
-          type === "investment" && goalId ? " e vinculada à meta" : ""
-        }`,
+        description: `${transactionTypeLabel.charAt(0).toUpperCase() + transactionTypeLabel.slice(1)} adicionada com sucesso`,
       });
 
       onTransactionAdded?.();
@@ -120,7 +98,6 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
     setDescription("");
     setPaymentMethod("pix");
     setClientId(null);
-    setGoalId(null);
     setType("expense");
   };
 
@@ -135,11 +112,8 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
     setType,
     clientId,
     setClientId,
-    goalId,
-    setGoalId,
     isLoading,
     clients,
-    goals,
     handleSubmit,
     resetForm
   };

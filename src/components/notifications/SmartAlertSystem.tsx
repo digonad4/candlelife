@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useGoals } from "@/hooks/useGoals";
 
 interface SmartAlert {
   id: string;
@@ -23,7 +22,6 @@ export function SmartAlertSystem() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { checkGoalAlerts } = useGoals();
 
   // Monitor smart alerts
   const { data: alerts = [] } = useQuery({
@@ -89,39 +87,6 @@ export function SmartAlertSystem() {
     },
   });
 
-  // Monitor transaction changes for goal alerts
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('transaction_alerts')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'transactions',
-        filter: `user_id=eq.${user.id}`
-      }, async (payload) => {
-        const newTransaction = payload.new as any;
-        
-        // Calculate accumulated value from all transactions
-        const { data: allTransactions } = await supabase
-          .from("transactions")
-          .select("amount")
-          .eq("user_id", user.id)
-          .eq("payment_status", "confirmed")
-          .order("date", { ascending: true });
-
-        if (allTransactions) {
-          const accumulatedValue = allTransactions.reduce((sum, t) => sum + t.amount, 0);
-          checkGoalAlerts(accumulatedValue);
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, checkGoalAlerts]);
 
   // Show alert notifications
   useEffect(() => {

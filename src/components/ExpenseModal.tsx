@@ -22,11 +22,8 @@ export function ExpenseModal({
     setType,
     clientId,
     setClientId,
-    goalId,
-    setGoalId,
     isLoading,
     clients,
-    goals,
     handleSubmit
   } = useExpenseForm(() => {
     onTransactionAdded?.();
@@ -51,11 +48,8 @@ export function ExpenseModal({
           setType={setType}
           clientId={clientId}
           setClientId={setClientId}
-          goalId={goalId}
-          setGoalId={setGoalId}
           isLoading={isLoading}
           clients={clients}
-          goals={goals}
           onSubmit={handleSubmit}
         />
       </DialogContent>
