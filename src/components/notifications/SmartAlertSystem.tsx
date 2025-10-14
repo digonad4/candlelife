@@ -11,7 +11,6 @@ interface SmartAlert {
   title: string;
   message: string;
   severity: "info" | "warning" | "critical";
-  goal_id?: string;
   is_read: boolean;
   metadata: any;
   created_at: string;
@@ -65,7 +64,6 @@ export function SmartAlertSystem() {
       title: string;
       message: string;
       severity: "info" | "warning" | "critical";
-      goal_id?: string;
       metadata?: any;
     }) => {
       if (!user) throw new Error("User not authenticated");

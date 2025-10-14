@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 export type NotificationType = 
   | 'message' 
   | 'transaction' 
-  | 'goal_achieved' 
   | 'payment_received' 
   | 'client_added' 
   | 'system' 
@@ -26,7 +25,6 @@ export interface Notification {
 export interface NotificationPreferences {
   messages: boolean;
   transactions: boolean;
-  goals: boolean;
   payments: boolean;
   clients: boolean;
   social: boolean;
@@ -52,7 +50,6 @@ const GlobalNotificationsContext = createContext<GlobalNotificationsContextType 
 const defaultPreferences: NotificationPreferences = {
   messages: true,
   transactions: true,
-  goals: true,
   payments: true,
   clients: true,
   social: true,
@@ -161,7 +158,6 @@ export const GlobalNotificationsProvider: React.FC<{ children: React.ReactNode }
     // Check if this type of notification is enabled
     const typeKey = type === 'message' ? 'messages' : 
                    type === 'transaction' ? 'transactions' :
-                   type === 'goal_achieved' ? 'goals' :
                    type === 'payment_received' ? 'payments' :
                    type === 'client_added' ? 'clients' :
                    type === 'social' ? 'social' : 'system';

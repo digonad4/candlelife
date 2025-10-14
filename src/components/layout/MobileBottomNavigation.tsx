@@ -38,8 +38,8 @@ export const MobileBottomNavigation = () => {
   const mainNavItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     { icon: CreditCard, label: "Transações", href: "/transactions" },
-    { icon: Target, label: "Metas", href: "/goals" },
     { icon: Users, label: "Clientes", href: "/clients" },
+    { icon: Settings, label: "Ajustes", href: "/settings" },
   ];
 
   // Páginas secundárias no drawer

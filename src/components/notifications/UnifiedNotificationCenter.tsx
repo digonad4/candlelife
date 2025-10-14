@@ -42,9 +42,6 @@ export const UnifiedNotificationCenter = () => {
       case 'transaction':
         navigate('/transactions');
         break;
-      case 'goal':
-        navigate('/goals');
-        break;
       case 'social':
         navigate('/social');
         break;
@@ -69,7 +66,7 @@ export const UnifiedNotificationCenter = () => {
         return <MessageSquare className="h-4 w-4" />;
       case 'transaction':
         return <DollarSign className="h-4 w-4" />;
-      case 'goal':
+      case 'alert':
         return <Target className="h-4 w-4" />;
       case 'social':
         return <Users className="h-4 w-4" />;
@@ -84,7 +81,7 @@ export const UnifiedNotificationCenter = () => {
         return 'text-blue-500';
       case 'transaction':
         return 'text-green-500';
-      case 'goal':
+      case 'alert':
         return 'text-purple-500';
       case 'social':
         return 'text-orange-500';

@@ -56,7 +56,6 @@ export function SmartChart({ startDate, endDate }: SmartChartProps) {
       </div>
       <ProfessionalCandlestickChart 
         data={chartData}
-        goals={[]}
       />
     </div>
   );

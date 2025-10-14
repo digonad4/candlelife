@@ -23,9 +23,8 @@ export const Footer = () => {
   const mainButtons = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Transações", href: "/transactions", icon: CreditCard },
-    { label: "Metas", href: "/goals", icon: Target },
     { label: "Clientes", href: "/clients", icon: Users },
-    { label: "Chat", href: "/chat", icon: MessageSquare },
+    { label: "Configurações", href: "/settings", icon: Settings },
   ];
 
   const handleLogout = async () => {

@@ -8,7 +8,6 @@ export interface Transaction {
   payment_status: "pending" | "confirmed" | "failed";
   payment_method: "cash" | "credit_card" | "debit_card" | "pix" | "transfer" | "invoice";
   client_id?: string | null;
-  goal_id?: string | null;
   category?: string;
   recurring?: boolean;
   client?: { name: string };

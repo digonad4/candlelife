@@ -53,9 +53,9 @@ export const ProfessionalMobileNav = () => {
       gradient: "from-emerald-500 to-teal-600"
     },
     { 
-      icon: Target, 
-      label: "Metas", 
-      href: "/goals",
+      icon: Users, 
+      label: "Clientes", 
+      href: "/clients",
       gradient: "from-amber-500 to-orange-600"
     },
   ];

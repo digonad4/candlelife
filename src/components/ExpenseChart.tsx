@@ -42,7 +42,6 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
       <CardContent>
         <ProfessionalCandlestickChart 
           data={candleData}
-          goals={[]}
         />
       </CardContent>
     </Card>

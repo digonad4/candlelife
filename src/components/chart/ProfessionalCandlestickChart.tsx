@@ -24,19 +24,12 @@ interface CandleData {
   close: number;
 }
 
-interface Goal {
-  value: number;
-  type: 'support' | 'resistance';
-  label: string;
-}
-
 interface Props {
   data: CandleData[];
-  goals?: Goal[];
   onClickValue?: (value: number) => void;
 }
 
-export function ProfessionalCandlestickChart({ data, goals = [], onClickValue }: Props) {
+export function ProfessionalCandlestickChart({ data, onClickValue }: Props) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -117,17 +110,6 @@ export function ProfessionalCandlestickChart({ data, goals = [], onClickValue }:
       });
     }
 
-    // Adicionar linhas de meta
-    goals.forEach(goal => {
-      const priceLine = candlestickSeries.createPriceLine({
-        price: goal.value,
-        color: goal.type === 'resistance' ? getColor('--chart-candle-up') : getColor('--chart-candle-down'),
-        lineWidth: 2,
-        lineStyle: goal.type === 'support' ? 2 : 0,
-        axisLabelVisible: true,
-        title: goal.label,
-      });
-    });
 
     chart.timeScale().fitContent();
 
@@ -149,7 +131,7 @@ export function ProfessionalCandlestickChart({ data, goals = [], onClickValue }:
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [data, goals, isFullscreen]);
+  }, [data, isFullscreen]);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
