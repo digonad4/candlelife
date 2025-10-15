@@ -112,10 +112,10 @@ const RecentTransactions = ({
   // Check if there are any pending non-invoiced transactions
   const hasSelectablePending = (transactions || []).some(t => t.payment_status === "pending" && t.payment_method !== "invoice");
   return <Card className="rounded-xl border-border bg-card text-card-foreground">
-      <CardHeader>
+      <CardHeader className="p-6">
         <CardTitle>Transações</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 mx-0 px-0 py-[75px]">
+      <CardContent className="space-y-6 p-6">
         <TransactionSearchFilter searchTerm={searchTerm} onSearchTermChange={setSearchTerm} viewMode={viewMode} onToggleViewMode={toggleViewMode} />
 
         <div>

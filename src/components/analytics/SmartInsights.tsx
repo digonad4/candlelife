@@ -10,14 +10,14 @@ export function SmartInsights() {
 
   if (!spendingAnalysis) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border">
+        <CardHeader className="p-6">
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5" />
             Insights Inteligentes
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="text-center py-4 text-muted-foreground">
             <p>Carregando análises inteligentes...</p>
           </div>
@@ -51,14 +51,14 @@ export function SmartInsights() {
   return (
     <div className="space-y-6">
       {/* Financial Health Overview */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border">
+        <CardHeader className="p-6">
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
             Saúde Financeira
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
@@ -108,14 +108,14 @@ export function SmartInsights() {
 
       {/* Top Spending Categories */}
       {spendingAnalysis.categories && spendingAnalysis.categories.length > 0 && (
-        <Card>
-          <CardHeader>
+        <Card className="rounded-xl border-border">
+          <CardHeader className="p-6">
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
               Principais Categorias de Gasto
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="space-y-3">
               {spendingAnalysis.categories.slice(0, 5).map((category, index) => (
                 <div key={index} className="flex items-center justify-between">
@@ -139,8 +139,8 @@ export function SmartInsights() {
       )}
 
       {/* Smart Insights */}
-      <Card>
-        <CardHeader>
+      <Card className="rounded-xl border-border">
+        <CardHeader className="p-6">
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5" />
             Insights Inteligentes
@@ -151,7 +151,7 @@ export function SmartInsights() {
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 space-y-4">
           {insights.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
               <CheckCircle className="h-12 w-12 mx-auto mb-2 text-green-500" />
@@ -184,8 +184,8 @@ export function SmartInsights() {
 
       {/* Recent Alerts */}
       {alerts.length > 0 && (
-        <Card>
-          <CardHeader>
+        <Card className="rounded-xl border-border">
+          <CardHeader className="p-6">
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Alertas Recentes
@@ -196,7 +196,7 @@ export function SmartInsights() {
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-6 space-y-3">
             {alerts.slice(0, 5).map((alert) => (
               <div 
                 key={alert.id} 

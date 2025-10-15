@@ -1,16 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfessionalCandlestickChart } from "./chart/ProfessionalCandlestickChart";
-import { usePeriodLabel } from "./chart/usePeriodLabel";
 import { useOHLCData } from "@/hooks/useOHLCData";
 
-interface ExpenseChartProps {
-  startDate?: Date;
-  endDate?: Date;
-}
-
-export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
-  const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate, "individual");
-  const periodLabel = usePeriodLabel(startDate, endDate);
+export function ExpenseChart() {
+  // Sempre mostra TODAS as transações confirmadas (sem filtros de data)
+  const { data: ohlcData, isLoading } = useOHLCData(undefined, undefined, "individual");
 
   // Transformar dados OHLC em formato do gráfico
   const candleData = ohlcData?.map(d => ({
@@ -23,11 +17,11 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Seu desempenho de {periodLabel}</CardTitle>
+      <Card className="rounded-xl border-border">
+        <CardHeader className="p-6">
+          <CardTitle>Seu Desempenho Geral</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="h-[500px] w-full animate-pulse bg-muted rounded-lg" />
         </CardContent>
       </Card>
@@ -35,11 +29,11 @@ export function ExpenseChart({ startDate, endDate }: ExpenseChartProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Seu desempenho de {periodLabel}</CardTitle>
+    <Card className="rounded-xl border-border">
+      <CardHeader className="p-6">
+        <CardTitle>Seu Desempenho Geral</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <ProfessionalCandlestickChart 
           data={candleData}
         />

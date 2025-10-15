@@ -71,7 +71,7 @@ export function FinancialSummary({ transactions }: FinancialSummaryProps) {
   }, [transactions]);
 
   return (
-    <div className="w-full h-full flex flex-col bg-background text-foreground p-6 rounded-xl shadow-md">
+    <div className="w-full h-full flex flex-col bg-card border border-border text-card-foreground p-6 rounded-xl shadow-sm">
       <h2 className="text-xl font-semibold mb-6">Resumo Financeiro</h2>
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">

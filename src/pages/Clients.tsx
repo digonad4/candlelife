@@ -5,11 +5,9 @@ import { ClientsList } from "@/components/clients/ClientsList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Clients() {
   const [isClientFormOpen, setIsClientFormOpen] = useState(false);
-  const isMobile = useIsMobile();
   
   interface Client {
     id: string;
@@ -37,27 +35,25 @@ export default function Clients() {
   };
 
   return (
-    <div className={`w-full space-y-6 ${isMobile ? 'pb-4' : 'pb-8'}`}>
-      <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${isMobile ? 'pt-2' : ''}`}>
-        <h1 className={`text-2xl sm:text-3xl font-bold ${isMobile ? 'pl-2' : ''}`}>
+    <div className="w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">
           Gerenciamento de Clientes
         </h1>
-        <Button onClick={() => handleOpenClientForm()} className={isMobile ? 'mx-2 w-full sm:w-auto' : ''}>
+        <Button onClick={() => handleOpenClientForm()}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Novo Cliente
         </Button>
       </div>
 
-      <div className={`grid gap-6 ${isMobile ? 'px-2' : ''}`}>
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Seus Clientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ClientsList onEditClient={handleOpenClientForm} />
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="rounded-xl border-border bg-card">
+        <CardHeader className="p-6">
+          <CardTitle>Seus Clientes</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <ClientsList onEditClient={handleOpenClientForm} />
+        </CardContent>
+      </Card>
 
       <ClientForm 
         open={isClientFormOpen} 

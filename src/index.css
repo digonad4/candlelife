@@ -268,6 +268,37 @@
 }
 
 @layer utilities {
+  /* Padrões de Layout */
+  .standard-page {
+    @apply w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6;
+  }
+
+  /* Padrões de Cards */
+  .standard-card {
+    @apply rounded-xl border border-border bg-card shadow-sm;
+  }
+
+  .standard-card-header {
+    @apply p-6;
+  }
+
+  .standard-card-content {
+    @apply p-6;
+  }
+
+  .standard-card-footer {
+    @apply p-6 pt-0;
+  }
+
+  /* Trading Card (garantir consistência) */
+  .trading-card {
+    @apply rounded-xl border border-border bg-card shadow-sm;
+  }
+
+  .space-trading {
+    @apply space-y-6;
+  }
+
   /* Text utilities */
   .text-balance {
     text-wrap: balance;

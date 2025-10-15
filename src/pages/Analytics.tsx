@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function Analytics() {
   return (
-    <div className="container mx-auto py-6 space-y-8">
+    <div className="w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

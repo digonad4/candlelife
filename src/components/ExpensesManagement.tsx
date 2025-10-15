@@ -87,9 +87,9 @@ const ExpensesManagement = () => {
       : "Selecione um período";
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl md:text-4xl font-bold text-foreground">Despesas</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Despesas</h1>
         {selectedTransactions.length > 0 && (
           <Button
             onClick={() => setIsConfirmDialogOpen(true)}
