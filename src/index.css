@@ -270,7 +270,12 @@
 @layer utilities {
   /* Padrões de Layout */
   .standard-page {
-    @apply w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6;
+    @apply w-full space-y-6 safe-area-top max-w-7xl mx-auto p-4 md:p-6;
+  }
+  
+  /* Mobile layout with bottom nav spacing */
+  .mobile-page-content {
+    @apply pb-24;
   }
 
   /* Padrões de Cards */
