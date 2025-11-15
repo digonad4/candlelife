@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear, format } from "date-fns";
+import { useEffect } from "react";
 
 interface OHLCData {
   date: string;
@@ -17,8 +18,24 @@ type TimeRange = "individual" | "daily" | "weekly" | "monthly" | "yearly";
 
 export function useOHLCData(startDate?: Date, endDate?: Date, timeRange: TimeRange = "individual") {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  return useQuery({
+  const refreshOHLC = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      
+      const { error } = await supabase.rpc('refresh_user_ohlc', {
+        p_user_id: user.id
+      });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
+    }
+  });
+
+  const query = useQuery({
     queryKey: ["ohlc-data", user?.id, startDate?.toISOString(), endDate?.toISOString(), timeRange],
     queryFn: async () => {
       if (!user) return [];
@@ -57,6 +74,20 @@ export function useOHLCData(startDate?: Date, endDate?: Date, timeRange: TimeRan
     enabled: !!user,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
+
+  // Verificar se há necessidade de recalcular apenas na primeira carga
+  useEffect(() => {
+    if (query.data && query.data.length > 0 && !startDate && !endDate) {
+      // Apenas recalcular automaticamente uma vez ao montar
+      const hasRun = sessionStorage.getItem('ohlc-refresh-check');
+      if (!hasRun) {
+        refreshOHLC.mutate();
+        sessionStorage.setItem('ohlc-refresh-check', 'true');
+      }
+    }
+  }, [query.data?.length]);
+
+  return { ...query, refreshOHLC: refreshOHLC.mutate };
 }
 
 function aggregateByPeriod(data: OHLCData[], timeRange: TimeRange): OHLCData[] {

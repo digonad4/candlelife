@@ -762,6 +762,7 @@ export type Database = {
         Args: { p_date: string; p_user_id: string }
         Returns: undefined
       }
+      refresh_user_ohlc: { Args: { p_user_id: string }; Returns: undefined }
       reject_friend_request: { Args: { p_request_id: string }; Returns: Json }
       remove_friendship: { Args: { p_friend_id: string }; Returns: Json }
       search_users: {
