@@ -72,7 +72,7 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
           {/* Content Area */}
           <main className={cn(
             "flex-1 overflow-auto",
-            isMobile ? "pb-16" : "p-6", // Add bottom padding for mobile nav
+            isMobile ? "pb-24" : "p-6", // Add bottom padding for mobile nav
             "bg-gradient-to-br from-background via-background/95 to-muted/20"
           )}>
             <div className={cn(
