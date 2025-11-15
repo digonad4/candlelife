@@ -20,7 +20,7 @@ export type Database = {
           device_info: string | null
           expires_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           last_activity: string | null
           session_token: string
           user_id: string
@@ -30,7 +30,7 @@ export type Database = {
           device_info?: string | null
           expires_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_activity?: string | null
           session_token: string
           user_id: string
@@ -40,7 +40,7 @@ export type Database = {
           device_info?: string | null
           expires_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_activity?: string | null
           session_token?: string
           user_id?: string
@@ -640,10 +640,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_friend_request: {
-        Args: { p_request_id: string }
-        Returns: Json
-      }
+      accept_friend_request: { Args: { p_request_id: string }; Returns: Json }
       analyze_spending_patterns: {
         Args: { p_days?: number; p_user_id: string }
         Returns: Json
@@ -661,10 +658,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_expired_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_sessions: { Args: never; Returns: undefined }
       clear_conversation: {
         Args: { p_other_user_id: string; p_user_id: string }
         Returns: undefined
@@ -704,10 +698,9 @@ export type Database = {
           type: string
         }[]
       }
-      get_total_reactions_count: {
-        Args: Record<PropertyKey, never> | { post_id: string }
-        Returns: number
-      }
+      get_total_reactions_count:
+        | { Args: { post_id: string }; Returns: Json }
+        | { Args: never; Returns: number }
       get_user_groups: {
         Args: { p_user_id: string }
         Returns: {
@@ -769,14 +762,8 @@ export type Database = {
         Args: { p_date: string; p_user_id: string }
         Returns: undefined
       }
-      reject_friend_request: {
-        Args: { p_request_id: string }
-        Returns: Json
-      }
-      remove_friendship: {
-        Args: { p_friend_id: string }
-        Returns: Json
-      }
+      reject_friend_request: { Args: { p_request_id: string }; Returns: Json }
+      remove_friendship: { Args: { p_friend_id: string }; Returns: Json }
       search_users: {
         Args: { search_term: string }
         Returns: {
@@ -786,10 +773,7 @@ export type Database = {
           username: string
         }[]
       }
-      send_friend_request: {
-        Args: { p_receiver_id: string }
-        Returns: Json
-      }
+      send_friend_request: { Args: { p_receiver_id: string }; Returns: Json }
       soft_delete_message: {
         Args: { p_message_id: string; p_user_id: string }
         Returns: undefined
