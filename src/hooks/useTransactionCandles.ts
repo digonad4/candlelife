@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
 
 interface CandleData {
   date: string;
@@ -12,6 +13,35 @@ interface CandleData {
 
 export function useTransactionCandles(startDate?: Date, endDate?: Date) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Realtime subscription para atualizar automaticamente
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`transaction_candles_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('📊 Transaction change detected, updating candles:', payload);
+          queryClient.invalidateQueries({ 
+            queryKey: ["transaction-candles", user.id] 
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   return useQuery({
     queryKey: ["transaction-candles", user?.id, startDate?.toISOString(), endDate?.toISOString()],
@@ -71,6 +101,7 @@ export function useTransactionCandles(startDate?: Date, endDate?: Date) {
       return candles;
     },
     enabled: !!user,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 0, // Sempre buscar dados frescos
+    refetchOnWindowFocus: true,
   });
 }
