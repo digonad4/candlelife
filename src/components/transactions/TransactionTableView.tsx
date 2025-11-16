@@ -23,7 +23,7 @@ export function TransactionTableView({
   const isMobile = useIsMobile();
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full max-w-full overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
       <Table className="min-w-full">
         <TransactionTableHeader />
         <TransactionTableBody

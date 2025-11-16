@@ -10,7 +10,7 @@ export const LAYOUT_STYLES = {
     padding: "p-4 md:p-6"
   },
   card: {
-    base: "rounded-xl border border-border bg-card shadow-sm",
+    base: "w-full max-w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm",
     header: "p-6",
     content: "p-6",
     footer: "p-6 pt-0"
@@ -19,6 +19,12 @@ export const LAYOUT_STYLES = {
     section: "space-y-6",
     cardGap: "gap-6"
   }
+} as const;
+
+export const MOBILE_LAYOUT = {
+  bottomNavHeight: '80px',
+  safeAreaPadding: '32px',
+  totalBottomSpacing: '112px', // 80px nav + 32px padding
 } as const;
 
 /**
