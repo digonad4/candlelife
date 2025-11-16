@@ -42,50 +42,82 @@ export function ExpenseForm({
   onSubmit
 }: ExpenseFormProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
-      <div className="space-y-3">
-        <Label className="text-base sm:text-lg font-medium">Tipo</Label>
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <Label className="text-lg font-semibold">Tipo de Transação</Label>
         <RadioGroup
           value={type}
           onValueChange={(value) => setType(value as "expense" | "income" | "investment")}
           className="grid grid-cols-1 sm:grid-cols-3 gap-3"
         >
-          <div className={`flex items-center space-x-3 p-3 sm:p-4 border rounded-lg cursor-pointer transition-colors ${
-            type === "expense" ? "border-red-500 bg-red-50" : "border-input hover:bg-accent"
+          <div className={`group relative flex items-center space-x-3 p-4 sm:p-5 border-2 rounded-2xl cursor-pointer transition-all duration-200 ${
+            type === "expense" 
+              ? "border-red-500 bg-red-500/5 shadow-md shadow-red-500/20 scale-[1.02]" 
+              : "border-border hover:border-red-300 hover:bg-red-500/5"
           }`}>
-            <RadioGroupItem value="expense" id="expense" />
-            <Label htmlFor="expense" className="flex items-center gap-2 cursor-pointer">
-              <ArrowDownIcon className="w-4 h-4 text-red-500" />
-              <span className="text-red-500 font-medium">Despesa</span>
+            <RadioGroupItem value="expense" id="expense" className="border-red-500" />
+            <Label htmlFor="expense" className="flex items-center gap-2 cursor-pointer flex-1">
+              <div className={`p-2 rounded-xl transition-colors ${
+                type === "expense" ? "bg-red-500" : "bg-red-500/10"
+              }`}>
+                <ArrowDownIcon className={`w-5 h-5 ${
+                  type === "expense" ? "text-white" : "text-red-500"
+                }`} />
+              </div>
+              <span className={`font-semibold ${
+                type === "expense" ? "text-red-600" : "text-foreground/70"
+              }`}>Despesa</span>
             </Label>
           </div>
           
-          <div className={`flex items-center space-x-3 p-3 sm:p-4 border rounded-lg cursor-pointer transition-colors ${
-            type === "income" ? "border-green-500 bg-green-50" : "border-input hover:bg-accent"
+          <div className={`group relative flex items-center space-x-3 p-4 sm:p-5 border-2 rounded-2xl cursor-pointer transition-all duration-200 ${
+            type === "income" 
+              ? "border-green-500 bg-green-500/5 shadow-md shadow-green-500/20 scale-[1.02]" 
+              : "border-border hover:border-green-300 hover:bg-green-500/5"
           }`}>
-            <RadioGroupItem value="income" id="income" />
-            <Label htmlFor="income" className="flex items-center gap-2 cursor-pointer">
-              <ArrowUpIcon className="w-4 h-4 text-green-500" />
-              <span className="text-green-500 font-medium">Receita</span>
+            <RadioGroupItem value="income" id="income" className="border-green-500" />
+            <Label htmlFor="income" className="flex items-center gap-2 cursor-pointer flex-1">
+              <div className={`p-2 rounded-xl transition-colors ${
+                type === "income" ? "bg-green-500" : "bg-green-500/10"
+              }`}>
+                <ArrowUpIcon className={`w-5 h-5 ${
+                  type === "income" ? "text-white" : "text-green-500"
+                }`} />
+              </div>
+              <span className={`font-semibold ${
+                type === "income" ? "text-green-600" : "text-foreground/70"
+              }`}>Receita</span>
             </Label>
           </div>
           
-          <div className={`flex items-center space-x-3 p-3 sm:p-4 border rounded-lg cursor-pointer transition-colors ${
-            type === "investment" ? "border-blue-500 bg-blue-50" : "border-input hover:bg-accent"
+          <div className={`group relative flex items-center space-x-3 p-4 sm:p-5 border-2 rounded-2xl cursor-pointer transition-all duration-200 ${
+            type === "investment" 
+              ? "border-blue-500 bg-blue-500/5 shadow-md shadow-blue-500/20 scale-[1.02]" 
+              : "border-border hover:border-blue-300 hover:bg-blue-500/5"
           }`}>
-            <RadioGroupItem value="investment" id="investment" />
-            <Label htmlFor="investment" className="flex items-center gap-2 cursor-pointer">
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-              <span className="text-blue-500 font-medium">Investimento</span>
+            <RadioGroupItem value="investment" id="investment" className="border-blue-500" />
+            <Label htmlFor="investment" className="flex items-center gap-2 cursor-pointer flex-1">
+              <div className={`p-2 rounded-xl transition-colors ${
+                type === "investment" ? "bg-blue-500" : "bg-blue-500/10"
+              }`}>
+                <TrendingUp className={`w-5 h-5 ${
+                  type === "investment" ? "text-white" : "text-blue-500"
+                }`} />
+              </div>
+              <span className={`font-semibold ${
+                type === "investment" ? "text-blue-600" : "text-foreground/70"
+              }`}>Investimento</span>
             </Label>
           </div>
         </RadioGroup>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="amount">Valor</Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+      <div className="space-y-3">
+        <Label htmlFor="amount" className="text-base font-semibold">Valor</Label>
+        <div className="relative group">
+          <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-semibold transition-colors ${
+            type === "expense" ? "text-red-500" : type === "income" ? "text-green-500" : "text-blue-500"
+          }`}>
             R$
           </span>
           <Input
@@ -97,19 +129,19 @@ export function ExpenseForm({
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0,00"
             required
-            className={`pl-8 text-base ${
+            className={`pl-11 pr-4 h-14 text-lg font-semibold rounded-2xl border-2 transition-all ${
               type === "expense" 
-                ? "border-red-200 focus:border-red-500" 
+                ? "border-red-200 focus:border-red-500 focus:ring-red-500/20" 
                 : type === "income"
-                ? "border-green-200 focus:border-green-500"
-                : "border-blue-200 focus:border-blue-500"
+                ? "border-green-200 focus:border-green-500 focus:ring-green-500/20"
+                : "border-blue-200 focus:border-blue-500 focus:ring-blue-500/20"
             }`}
           />
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="description">Descrição</Label>
+      <div className="space-y-3">
+        <Label htmlFor="description" className="text-base font-semibold">Descrição</Label>
         <Input
           id="description"
           value={description}
@@ -120,22 +152,22 @@ export function ExpenseForm({
               : "Ex: Corrida, Manutenção..."
           }
           required
-          className="focus:border-primary text-base"
+          className="h-12 rounded-2xl border-2 focus:border-primary text-base"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
+      <div className="space-y-3">
+        <Label htmlFor="paymentMethod" className="text-base font-semibold">Forma de Pagamento</Label>
         <Select value={paymentMethod} onValueChange={(value) => {
           setPaymentMethod(value as PaymentMethod);
           if (value !== 'invoice') {
             setClientId(null);
           }
         }}>
-          <SelectTrigger>
+          <SelectTrigger className="h-12 rounded-2xl border-2">
             <SelectValue placeholder="Selecione a forma de pagamento" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-xl">
             <SelectItem value="pix">PIX</SelectItem>
             <SelectItem value="cash">Dinheiro</SelectItem>
             <SelectItem value="invoice">Faturado</SelectItem>
@@ -144,13 +176,13 @@ export function ExpenseForm({
       </div>
 
       {paymentMethod === 'invoice' && (
-        <div className="space-y-2">
-          <Label htmlFor="client">Cliente</Label>
+        <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <Label htmlFor="client" className="text-base font-semibold">Cliente</Label>
           <Select value={clientId || ''} onValueChange={setClientId} required>
-            <SelectTrigger>
+            <SelectTrigger className="h-12 rounded-2xl border-2">
               <SelectValue placeholder="Selecione o cliente" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl">
               {clients?.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name}
@@ -163,17 +195,25 @@ export function ExpenseForm({
 
       <Button 
         type="submit" 
-        className={`w-full ${
+        size="lg"
+        className={`w-full h-14 text-base font-semibold rounded-2xl shadow-lg transition-all duration-200 hover:scale-[1.02] ${
           type === "investment" 
-            ? "bg-blue-500 hover:bg-blue-600" 
-            : type === "expense" 
-            ? "" 
-            : ""
+            ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/30" 
+            : type === "income" 
+            ? "bg-green-500 hover:bg-green-600 shadow-green-500/30" 
+            : "shadow-red-500/30"
         }`}
         disabled={isLoading}
-        variant={type === "expense" ? "destructive" : type === "investment" ? "default" : "default"}
+        variant={type === "expense" ? "destructive" : "default"}
       >
-        {isLoading ? "Adicionando..." : "Adicionar"}
+        {isLoading ? (
+          <span className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            Adicionando...
+          </span>
+        ) : (
+          "Adicionar Transação"
+        )}
       </Button>
     </form>
   );

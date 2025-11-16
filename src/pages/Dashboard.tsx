@@ -85,6 +85,9 @@ const Dashboard = () => {
             queryKey: ["recent-transactions"]
           });
           queryClient.invalidateQueries({
+            queryKey: ["transaction-candles"]
+          });
+          queryClient.invalidateQueries({
             queryKey: ["expense-chart"]
           });
           queryClient.invalidateQueries({
@@ -92,6 +95,9 @@ const Dashboard = () => {
           });
           queryClient.invalidateQueries({
             queryKey: ["financial-goals"]
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["ohlc-data"]
           });
         }} 
       />
