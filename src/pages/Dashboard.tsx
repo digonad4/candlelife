@@ -95,6 +95,9 @@ const Dashboard = () => {
           });
         }} 
       />
+      
+      {/* Mobile spacer */}
+      <div className="h-8 md:hidden" />
     </div>
   );
 };

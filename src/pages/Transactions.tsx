@@ -104,6 +104,9 @@ const Transactions = () => {
         userId={user?.id}
         selectedTransactions={selectedTransactions}
       />
+      
+      {/* Mobile spacer */}
+      <div className="h-8 md:hidden" />
     </div>
   );
 };
