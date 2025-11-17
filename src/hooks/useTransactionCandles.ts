@@ -75,11 +75,12 @@ export function useTransactionCandles(startDate?: Date, endDate?: Date) {
       for (const transaction of data) {
         const previousBalance = accumulatedBalance;
         
-        // Atualizar saldo
+        // Atualizar saldo usando valor absoluto para garantir operação correta
+        const absoluteAmount = Math.abs(transaction.amount);
         if (transaction.type === 'income') {
-          accumulatedBalance += transaction.amount;
+          accumulatedBalance += absoluteAmount;
         } else {
-          accumulatedBalance -= transaction.amount;
+          accumulatedBalance -= absoluteAmount;
         }
 
         // Criar vela para esta transação
