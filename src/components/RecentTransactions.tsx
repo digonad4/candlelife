@@ -67,9 +67,10 @@ const RecentTransactions = ({
         title: "Pagamentos Confirmados",
         description: "Os pagamentos foram atualizados."
       });
-      queryClient.invalidateQueries({
-        queryKey: ["recent-transactions"]
-      });
+      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
+      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-insights"] });
       setSelectedTransactions([]);
       setIsConfirmDialogOpen(false);
     } catch (error) {
