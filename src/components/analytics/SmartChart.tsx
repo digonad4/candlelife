@@ -1,7 +1,5 @@
-import { useMemo, useState } from "react";
 import { ProfessionalCandlestickChart } from "@/components/chart/ProfessionalCandlestickChart";
-import { TimeRangeSelector } from "@/components/chart/TimeRangeSelector";
-import { useOHLCData } from "@/hooks/useOHLCData";
+import { useTransactionCandles } from "@/hooks/useTransactionCandles";
 
 interface SmartChartProps {
   startDate?: Date;
@@ -9,23 +7,7 @@ interface SmartChartProps {
 }
 
 export function SmartChart({ startDate, endDate }: SmartChartProps) {
-  const [timeRange, setTimeRange] = useState<"individual" | "daily" | "weekly" | "monthly" | "yearly">("individual");
-  const { data: ohlcData, isLoading } = useOHLCData(startDate, endDate, timeRange);
-
-  const chartData = useMemo(() => {
-    if (!ohlcData || ohlcData.length === 0) {
-      return [];
-    }
-
-    // Dados OHLC já vêm calculados do banco
-    return ohlcData.map(d => ({
-      date: d.date,
-      open: Number(d.open),
-      high: Number(d.high),
-      low: Number(d.low),
-      close: Number(d.close)
-    }));
-  }, [ohlcData]);
+  const { data: candleData, isLoading } = useTransactionCandles(startDate, endDate);
 
   if (isLoading) {
     return (
@@ -35,7 +17,7 @@ export function SmartChart({ startDate, endDate }: SmartChartProps) {
     );
   }
 
-  if (!ohlcData || ohlcData.length === 0) {
+  if (!candleData || candleData.length === 0) {
     return (
       <div className="text-center py-8">
         <div className="text-muted-foreground">
@@ -47,15 +29,9 @@ export function SmartChart({ startDate, endDate }: SmartChartProps) {
   }
 
   return (
-    <div className="relative h-full space-y-4">
-      <div className="flex justify-end">
-        <TimeRangeSelector 
-          timeRange={timeRange}
-          onTimeRangeChange={setTimeRange}
-        />
-      </div>
+    <div className="relative h-full">
       <ProfessionalCandlestickChart 
-        data={chartData}
+        data={candleData}
       />
     </div>
   );

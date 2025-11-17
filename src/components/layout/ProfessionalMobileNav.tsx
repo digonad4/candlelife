@@ -96,7 +96,7 @@ export const ProfessionalMobileNav = () => {
     <>
       {/* Professional Bottom Navigation */}
       <div className={`fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg ${
-        isNative ? 'safe-area-bottom pb-2' : 'pb-2'
+        isNative ? 'pb-safe' : 'pb-4'
       }`}>
         {/* Top accent line */}
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-trading-gradient" />

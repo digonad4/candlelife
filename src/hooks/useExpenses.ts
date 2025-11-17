@@ -78,6 +78,8 @@ export function useExpenses(
 
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
+      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
       return true;
     } catch (error) {
       toast({
