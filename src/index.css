@@ -237,12 +237,6 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  @supports (padding: env(safe-area-inset-bottom)) {
-    .pb-safe {
-      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
-    }
-  }
-
   /* Native transitions for mobile */
   .native-transition {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -361,35 +355,5 @@
   /* Mobile-optimized spacing */
   .space-mobile {
     padding: clamp(1rem, 3vw, 1.5rem);
-  }
-
-  /* Mobile-specific utilities */
-  @media (max-width: 768px) {
-    .mobile-safe-width {
-      max-width: 100vw;
-      overflow-x: hidden;
-    }
-    
-    .mobile-card {
-      @apply w-full max-w-full overflow-hidden;
-    }
-    
-    .mobile-text-truncate {
-      @apply truncate max-w-full;
-    }
-  }
-
-  /* Responsive text utilities */
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  /* Responsive spacing utilities */
-  .space-y-responsive {
-    @apply space-y-4 md:space-y-6;
-  }
-
-  .gap-responsive {
-    @apply gap-4 md:gap-6;
   }
 }

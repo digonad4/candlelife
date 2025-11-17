@@ -109,8 +109,6 @@ export function ClientTransactionsDialog({
       queryClient.invalidateQueries({ queryKey: ["client-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["expense-chart"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
-      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
       
       setSelectedTransactions([]);
       setIsConfirmDialogOpen(false);

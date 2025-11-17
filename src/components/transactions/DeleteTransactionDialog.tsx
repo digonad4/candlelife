@@ -67,9 +67,6 @@ export function DeleteTransactionDialog({
       });
 
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
-      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
       onOpenChange(false);
     } catch (error) {
       toast({

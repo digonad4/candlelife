@@ -57,9 +57,7 @@ export function EditTransactionDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
       queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
       toast({
         title: "Transação atualizada",
         description: "A transação foi atualizada com sucesso.",

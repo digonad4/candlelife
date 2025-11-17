@@ -66,17 +66,17 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
 
         {/* Main Content */}
         <div className={cn(
-          "flex-1 flex flex-col min-h-screen transition-all duration-300 overflow-hidden",
+          "flex-1 flex flex-col min-h-screen transition-all duration-300",
           !isMobile && "ml-64"
         )}>
           {/* Content Area */}
           <main className={cn(
             "flex-1 overflow-auto",
-            isMobile ? "pb-32 safe-area-bottom" : "p-6",
+            isMobile ? "pb-24" : "p-6", // Add bottom padding for mobile nav
             "bg-gradient-to-br from-background via-background/95 to-muted/20"
           )}>
             <div className={cn(
-              "h-full w-full overflow-x-hidden",
+              "h-full",
               isMobile ? "px-4 py-6" : "max-w-7xl mx-auto"
             )}>
               {children || <Outlet />}

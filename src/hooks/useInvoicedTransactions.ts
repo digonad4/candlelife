@@ -85,8 +85,6 @@ export function useInvoicedTransactions(
       queryClient.invalidateQueries({ queryKey: ["invoiced-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["expense-chart"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
-      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
 
       return true;
     } catch (error) {
