@@ -34,18 +34,30 @@ const Dashboard = () => {
   return (
     <div className="w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">Resumo Financeiro</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full md:hidden">
+            <span className="text-xs font-semibold text-primary">Visão Geral</span>
+          </div>
+        </div>
+        <div className="hidden md:block px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
+          <span className="text-sm font-semibold text-primary">Visão Geral</span>
+        </div>
       </div>
 
       {/* Date selector */}
-      <DateFilter 
-        dateRange={dateRange} 
-        startDate={startDate} 
-        endDate={endDate} 
-        onDateRangeChange={setDateRange} 
-        onStartDateChange={setStartDate} 
-        onEndDateChange={setEndDate} 
-      />
+      <div className="w-full max-w-full overflow-hidden">
+        <DateFilter 
+          dateRange={dateRange} 
+          startDate={startDate} 
+          endDate={endDate} 
+          onDateRangeChange={setDateRange} 
+          onStartDateChange={setStartDate} 
+          onEndDateChange={setEndDate} 
+        />
+      </div>
 
       {/* Enhanced Financial Insights with Goals */}
       <EnhancedFinancialInsights />
