@@ -34,6 +34,18 @@ export function useTransactionCandles(startDate?: Date, endDate?: Date) {
           queryClient.invalidateQueries({ 
             queryKey: ["transaction-candles", user.id] 
           });
+          
+          // Notificação visual da atualização
+          const eventType = payload.eventType;
+          if (eventType === 'INSERT') {
+            const transaction = payload.new as any;
+            const isIncome = transaction.type === 'income';
+            console.log(`${isIncome ? '📈' : '📉'} Gráfico LIFE atualizado!`);
+          } else if (eventType === 'DELETE') {
+            console.log('🗑️ Transação removida do gráfico LIFE');
+          } else {
+            console.log('📊 Gráfico LIFE atualizado!');
+          }
         }
       )
       .subscribe();
@@ -66,35 +78,69 @@ export function useTransactionCandles(startDate?: Date, endDate?: Date) {
       const { data, error } = await query;
 
       if (error) throw error;
-      if (!data || data.length === 0) return [];
-
-      // Calcular saldo acumulado e transformar em velas
-      let accumulatedBalance = 0;
+      
+      // Começar com saldo inicial de 1000 LIFE (nascimento)
+      let accumulatedBalance = 1000;
       const candles: CandleData[] = [];
 
+      // Adicionar vela inicial representando o "nascimento" da vida financeira
+      if (!data || data.length === 0) {
+        const now = new Date().toISOString();
+        candles.push({
+          date: now,
+          open: 0,
+          high: 1000,
+          low: 0,
+          close: 1000
+        });
+        return candles;
+      }
+
+      // Vela de nascimento (antes da primeira transação)
+      const firstTransactionDate = new Date(data[0].created_at);
+      const birthDate = new Date(firstTransactionDate.getTime() - 1000); // 1 segundo antes
+      candles.push({
+        date: birthDate.toISOString(),
+        open: 0,
+        high: 1000,
+        low: 0,
+        close: 1000
+      });
+
+      // Processar cada transação
       for (const transaction of data) {
         const previousBalance = accumulatedBalance;
         
-        // Atualizar saldo
+        // Atualizar saldo baseado no tipo de transação
         if (transaction.type === 'income') {
           accumulatedBalance += transaction.amount;
         } else {
           accumulatedBalance -= transaction.amount;
         }
 
-        // Criar vela para esta transação
-        const open = previousBalance;
-        const close = accumulatedBalance;
-        const high = Math.max(open, close);
-        const low = Math.min(open, close);
-        const date = transaction.created_at; // ISO string
+        // Garantir que a vela tenha amplitude mínima visível (1% do movimento)
+        const movement = Math.abs(accumulatedBalance - previousBalance);
+        const minAmplitude = Math.max(movement * 0.01, 0.5);
+        
+        let high: number;
+        let low: number;
+        
+        if (transaction.type === 'income') {
+          // Income: vela verde (sobe)
+          high = accumulatedBalance + minAmplitude;
+          low = previousBalance - minAmplitude;
+        } else {
+          // Expense: vela vermelha (desce)
+          high = previousBalance + minAmplitude;
+          low = accumulatedBalance - minAmplitude;
+        }
 
         candles.push({
-          date,
-          open,
+          date: transaction.created_at,
+          open: previousBalance,
           high,
           low,
-          close
+          close: accumulatedBalance
         });
       }
 

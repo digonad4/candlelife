@@ -35,6 +35,11 @@ export function ProfessionalCandlestickChart({ data, onClickValue }: Props) {
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Calcular valor atual e mudança percentual
+  const currentValue = data.length > 0 ? data[data.length - 1].close : 1000;
+  const initialValue = data.length > 0 ? data[0].open : 1000;
+  const change = initialValue !== 0 ? ((currentValue - initialValue) / initialValue) * 100 : 0;
+
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
@@ -56,7 +61,7 @@ export function ProfessionalCandlestickChart({ data, onClickValue }: Props) {
         horzLines: { color: getColor('--chart-grid') },
       },
       width: chartContainerRef.current.clientWidth,
-      height: isFullscreen ? window.innerHeight - 100 : 500,
+      height: isFullscreen ? window.innerHeight - 150 : 500,
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
@@ -77,14 +82,19 @@ export function ProfessionalCandlestickChart({ data, onClickValue }: Props) {
           labelBackgroundColor: getColor('--chart-crosshair'),
         },
       },
+      localization: {
+        priceFormatter: (price: number) => `${price.toFixed(2)} LIFE`,
+      },
     });
 
     const candlestickSeries = chart.addCandlestickSeries({
-      upColor: getColor('--chart-candle-up'),
-      downColor: getColor('--chart-candle-down'),
-      borderVisible: false,
-      wickUpColor: getColor('--chart-candle-up'),
-      wickDownColor: getColor('--chart-candle-down'),
+      upColor: '#22c55e',          // Verde vibrante para income
+      downColor: '#ef4444',        // Vermelho vibrante para expense
+      borderVisible: true,         // Mostrar borda para melhor definição
+      borderUpColor: '#16a34a',    // Borda verde escura
+      borderDownColor: '#dc2626',  // Borda vermelha escura
+      wickUpColor: '#22c55e',
+      wickDownColor: '#ef4444',
     });
 
     // Converter dados
@@ -120,7 +130,7 @@ export function ProfessionalCandlestickChart({ data, onClickValue }: Props) {
       if (chartContainerRef.current) {
         chart.resize(
           chartContainerRef.current.clientWidth,
-          isFullscreen ? window.innerHeight - 100 : 500
+          isFullscreen ? window.innerHeight - 150 : 500
         );
       }
     };
@@ -143,15 +153,38 @@ export function ProfessionalCandlestickChart({ data, onClickValue }: Props) {
   };
 
   return (
-    <Card className={`relative ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <Card className={`relative ${isFullscreen ? 'fixed inset-0 z-50 p-6' : ''}`}>
+      {/* Header com título LIFE e estatísticas */}
+      <div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm rounded-2xl p-4 border border-border/50 shadow-lg">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              $ LIFE
+            </h3>
+            <span className="text-xs text-muted-foreground">Sua Vida Financeira</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl sm:text-3xl font-bold text-foreground">
+              {currentValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <span className={`text-sm sm:text-lg font-semibold flex items-center gap-1 ${
+              change >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(2)}%
+            </span>
+          </div>
+        </div>
+      </div>
+
       <Button
         variant="ghost"
         size="icon"
-        className="absolute top-2 right-2 z-10"
+        className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm hover:bg-background/90"
         onClick={toggleFullscreen}
       >
         {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
       </Button>
+      
       <div 
         ref={chartContainerRef} 
         className={`w-full ${isFullscreen ? 'h-screen' : 'h-[500px]'}`} 
