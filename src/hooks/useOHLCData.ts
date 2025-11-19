@@ -20,6 +20,28 @@ export function useOHLCData(startDate?: Date, endDate?: Date, timeRange: TimeRan
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Realtime subscription para atualizar automaticamente
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`ohlc_updates_${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'transactions',
+        filter: `user_id=eq.${user.id}`
+      }, () => {
+        console.log('📊 Transaction change detected, invalidating OHLC data');
+        queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   const refreshOHLC = useMutation({
     mutationFn: async () => {
       if (!user) return;

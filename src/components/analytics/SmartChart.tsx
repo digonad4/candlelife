@@ -1,5 +1,5 @@
 import { ProfessionalCandlestickChart } from "@/components/chart/ProfessionalCandlestickChart";
-import { useTransactionCandles } from "@/hooks/useTransactionCandles";
+import { useOHLCData } from "@/hooks/useOHLCData";
 
 interface SmartChartProps {
   startDate?: Date;
@@ -7,7 +7,7 @@ interface SmartChartProps {
 }
 
 export function SmartChart({ startDate, endDate }: SmartChartProps) {
-  const { data: candleData, isLoading } = useTransactionCandles(startDate, endDate);
+  const { data: candleData, isLoading } = useOHLCData(startDate, endDate, "daily");
 
   if (isLoading) {
     return (

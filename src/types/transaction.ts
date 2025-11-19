@@ -3,7 +3,7 @@ export interface Transaction {
   id: string;
   date: string;
   description: string;
-  type: "income" | "expense" | "investment";
+  type: "income" | "expense";
   amount: number;
   payment_status: "pending" | "confirmed" | "failed";
   payment_method: "cash" | "credit_card" | "debit_card" | "pix" | "transfer" | "invoice";

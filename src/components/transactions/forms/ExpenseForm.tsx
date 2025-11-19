@@ -17,8 +17,8 @@ export interface ExpenseFormProps {
   setDescription: (description: string) => void;
   paymentMethod: PaymentMethod;
   setPaymentMethod: (method: PaymentMethod) => void;
-  type: "expense" | "income" | "investment";
-  setType: (type: "expense" | "income" | "investment") => void;
+  type: "expense" | "income";
+  setType: (type: "expense" | "income") => void;
   clientId: string | null;
   setClientId: (id: string | null) => void;
   isLoading: boolean;
@@ -47,8 +47,8 @@ export function ExpenseForm({
         <Label className="text-lg font-semibold">Tipo de Transação</Label>
         <RadioGroup
           value={type}
-          onValueChange={(value) => setType(value as "expense" | "income" | "investment")}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+          onValueChange={(value) => setType(value as "expense" | "income")}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
           <div className={`group relative flex items-center space-x-3 p-4 sm:p-5 border-2 rounded-2xl cursor-pointer transition-all duration-200 ${
             type === "expense" 
@@ -89,26 +89,6 @@ export function ExpenseForm({
               }`}>Receita</span>
             </Label>
           </div>
-          
-          <div className={`group relative flex items-center space-x-3 p-4 sm:p-5 border-2 rounded-2xl cursor-pointer transition-all duration-200 ${
-            type === "investment" 
-              ? "border-blue-500 bg-blue-500/5 shadow-md shadow-blue-500/20 scale-[1.02]" 
-              : "border-border hover:border-blue-300 hover:bg-blue-500/5"
-          }`}>
-            <RadioGroupItem value="investment" id="investment" className="border-blue-500" />
-            <Label htmlFor="investment" className="flex items-center gap-2 cursor-pointer flex-1">
-              <div className={`p-2 rounded-xl transition-colors ${
-                type === "investment" ? "bg-blue-500" : "bg-blue-500/10"
-              }`}>
-                <TrendingUp className={`w-5 h-5 ${
-                  type === "investment" ? "text-white" : "text-blue-500"
-                }`} />
-              </div>
-              <span className={`font-semibold ${
-                type === "investment" ? "text-blue-600" : "text-foreground/70"
-              }`}>Investimento</span>
-            </Label>
-          </div>
         </RadioGroup>
       </div>
 
@@ -116,7 +96,7 @@ export function ExpenseForm({
         <Label htmlFor="amount" className="text-base font-semibold">Valor</Label>
         <div className="relative group">
           <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-semibold transition-colors ${
-            type === "expense" ? "text-red-500" : type === "income" ? "text-green-500" : "text-blue-500"
+            type === "expense" ? "text-red-500" : "text-green-500"
           }`}>
             R$
           </span>
@@ -146,11 +126,7 @@ export function ExpenseForm({
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder={
-            type === "investment" 
-              ? "Ex: Ações, Fundos, Tesouro Direto..." 
-              : "Ex: Corrida, Manutenção..."
-          }
+          placeholder="Ex: Corrida, Manutenção..."
           required
           className="h-12 rounded-2xl border-2 focus:border-primary text-base"
         />
@@ -197,9 +173,7 @@ export function ExpenseForm({
         type="submit" 
         size="lg"
         className={`w-full h-14 text-base font-semibold rounded-2xl shadow-lg transition-all duration-200 hover:scale-[1.02] ${
-          type === "investment" 
-            ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/30" 
-            : type === "income" 
+          type === "income" 
             ? "bg-green-500 hover:bg-green-600 shadow-green-500/30" 
             : "shadow-red-500/30"
         }`}

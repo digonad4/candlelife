@@ -49,50 +49,7 @@ export function EnhancedFinancialInsights() {
       .filter(t => t.type === "income" && t.payment_status === "confirmed")
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const currentInvestments = currentMonthTxs
-      .filter(t => t.type === "investment")
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    const totalInvestments = transactions
-      .filter(t => t.type === "investment")
-      .reduce((sum, t) => sum + t.amount, 0);
-
     const insights: any[] = [];
-
-    // Investment-specific insights
-    if (currentInvestments > 0) {
-      const investmentRate = currentIncome > 0 ? (currentInvestments / currentIncome) : 0;
-      if (investmentRate >= 0.2) {
-        insights.push({
-          type: "investment_excellent",
-          title: "Excelente Taxa de Investimento! 📈",
-          description: `Você investiu ${Math.round(investmentRate * 100)}% da sua renda este mês (${formatCurrency(currentInvestments)})`,
-          action: "Continue investindo consistentemente para atingir suas metas",
-          impact: "low",
-          icon: <TrendingUp className="h-5 w-5 text-blue-500" />,
-        });
-      } else if (investmentRate >= 0.1) {
-        insights.push({
-          type: "investment_good",
-          title: "Boa Taxa de Investimento 💰",
-          description: `Você investiu ${Math.round(investmentRate * 100)}% da sua renda este mês`,
-          action: "Tente aumentar para 20% se possível",
-          impact: "medium",
-          icon: <TrendingUp className="h-5 w-5 text-blue-500" />,
-        });
-      }
-    }
-
-    if (totalInvestments > 0) {
-      insights.push({
-        type: "total_investments",
-        title: `Patrimônio Acumulado: ${formatCurrency(totalInvestments)}`,
-        description: `Você já acumulou um total de ${formatCurrency(totalInvestments)} em investimentos`,
-        action: "Continue investindo regularmente para fazer seu dinheiro trabalhar para você",
-        impact: "low",
-        icon: <PiggyBank className="h-5 w-5 text-blue-500" />,
-      });
-    }
 
     // Traditional insights
     if (currentExpenses > lastExpenses * 1.2) {
@@ -101,7 +58,7 @@ export function EnhancedFinancialInsights() {
         type: "expense_increase",
         title: "Aumento de Gastos",
         description: `Seus gastos subiram ${increase}% em relação ao mês passado`,
-        action: "Analise onde foi o aumento e considere reduzir para aumentar seus investimentos",
+        action: "Analise onde foi o aumento e considere reduzir",
         impact: "high",
         icon: <TrendingUp className="h-5 w-5 text-red-500" />,
       });
@@ -109,22 +66,21 @@ export function EnhancedFinancialInsights() {
 
     if (currentIncome > 0) {
       const savingsRate = (currentIncome - currentExpenses) / currentIncome;
-      const totalAllocationRate = (currentIncome - currentExpenses + currentInvestments) / currentIncome;
       
-      if (savingsRate < 0.1 && currentInvestments === 0) {
+      if (savingsRate < 0.1) {
         insights.push({
           type: "savings_low",
-          title: "Taxa de Poupança e Investimento Baixa",
-          description: `Você está poupando apenas ${Math.round(savingsRate * 100)}% da sua renda e não fez investimentos`,
-          action: "Tente economizar pelo menos 20% da sua renda mensal e destine parte para investimentos",
+          title: "Taxa de Poupança Baixa",
+          description: `Você está poupando apenas ${Math.round(savingsRate * 100)}% da sua renda`,
+          action: "Tente economizar pelo menos 20% da sua renda mensal",
           impact: "high",
           icon: <PiggyBank className="h-5 w-5 text-red-500" />,
         });
-      } else if (totalAllocationRate >= 0.3) {
+      } else if (savingsRate >= 0.3) {
         insights.push({
           type: "allocation_excellent",
           title: "Excelente Gestão Financeira! 👏",
-          description: `Você está poupando/investindo ${Math.round(totalAllocationRate * 100)}% da sua renda`,
+          description: `Você está poupando ${Math.round(savingsRate * 100)}% da sua renda`,
           action: "Continue assim! Considere diversificar seus investimentos",
           impact: "low",
           icon: <CheckCircle className="h-5 w-5 text-green-500" />,

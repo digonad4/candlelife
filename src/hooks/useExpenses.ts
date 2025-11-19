@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
+import { invalidateAllTransactionQueries } from "@/lib/invalidate-transactions";
 
 type Transaction = {
   id: string;
@@ -76,10 +77,7 @@ export function useExpenses(
         description: "Os pagamentos selecionados foram confirmados com sucesso.",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
-      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
+      invalidateAllTransactionQueries(queryClient);
       return true;
     } catch (error) {
       toast({

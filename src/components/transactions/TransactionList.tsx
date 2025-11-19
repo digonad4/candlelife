@@ -33,8 +33,7 @@ export function TransactionList({
     const transaction = transactions.find(t => t.id === id);
     if (transaction) {
       const isPending = transaction.payment_status === "pending" && 
-                       transaction.payment_method !== "invoice" && 
-                       transaction.type !== "investment";
+                       transaction.payment_method !== "invoice";
       onSelectTransaction(id, isPending);
     }
   };
