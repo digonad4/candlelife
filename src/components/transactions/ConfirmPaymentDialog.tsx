@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/transaction";
+import { invalidateAllTransactionQueries } from "@/lib/invalidate-transactions";
 
 interface ConfirmPaymentDialogProps {
   open: boolean;
@@ -67,10 +68,7 @@ export function ConfirmPaymentDialog({
           : "O status do pagamento foi atualizado com sucesso.",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
-      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+      invalidateAllTransactionQueries(queryClient);
       onOpenChange(false);
     } catch (error) {
       toast({

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { invalidateAllTransactionQueries } from "@/lib/invalidate-transactions";
 
 interface EditTransactionDialogProps {
   isOpen: boolean;
@@ -56,10 +57,7 @@ export function EditTransactionDialog({
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
-      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+      invalidateAllTransactionQueries(queryClient);
       toast({
         title: "Transação atualizada",
         description: "A transação foi atualizada com sucesso.",
@@ -113,14 +111,18 @@ export function EditTransactionDialog({
 
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
-            <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as any })}>
+            <Select
+              value={formData.type}
+              onValueChange={(value: "expense" | "income") =>
+                setFormData({ ...formData, type: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="income">Receita</SelectItem>
                 <SelectItem value="expense">Despesa</SelectItem>
-                <SelectItem value="investment">Investimento</SelectItem>
               </SelectContent>
             </Select>
           </div>

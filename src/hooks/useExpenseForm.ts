@@ -12,7 +12,7 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
-  const [type, setType] = useState<"expense" | "income" | "investment">("expense");
+  const [type, setType] = useState<"expense" | "income">("expense");
   const [clientId, setClientId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -58,7 +58,7 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
         type,
         user_id: user.id,
         payment_method: paymentMethod,
-        payment_status: type === "investment" ? "confirmed" : (type === "expense" ? "confirmed" : "pending"),
+        payment_status: type === "expense" ? "confirmed" : "pending",
         date: new Date().toISOString()
       };
 
@@ -70,8 +70,7 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
 
       const transactionTypeLabel = {
         expense: "despesa",
-        income: "receita", 
-        investment: "investimento"
+        income: "receita"
       }[type];
 
       toast({

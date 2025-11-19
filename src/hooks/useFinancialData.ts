@@ -9,7 +9,7 @@ import { Transaction } from "@/types/transaction";
 type DatabaseTransaction = {
   id: string;
   user_id: string;
-  type: "expense" | "income" | "investment";
+  type: "expense" | "income";
   amount: number;
   date: string;
   description: string;

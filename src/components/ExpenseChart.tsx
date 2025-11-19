@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfessionalCandlestickChart } from "./chart/ProfessionalCandlestickChart";
-import { useTransactionCandles } from "@/hooks/useTransactionCandles";
+import { useOHLCData } from "@/hooks/useOHLCData";
 
 export function ExpenseChart() {
-  // Mostra cada transação como uma vela individual
-  const { data: candleData, isLoading } = useTransactionCandles();
+  // Mostra dados agregados diários do OHLC
+  const { data: candleData, isLoading } = useOHLCData(undefined, undefined, "daily");
 
   if (isLoading) {
     return (

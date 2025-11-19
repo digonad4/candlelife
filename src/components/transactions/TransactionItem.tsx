@@ -46,8 +46,6 @@ export function TransactionItem({
         return "text-green-600";
       case "expense":
         return "text-red-600";
-      case "investment":
-        return "text-blue-600";
       default:
         return "text-foreground";
     }
@@ -59,22 +57,18 @@ export function TransactionItem({
         return "Receita";
       case "expense":
         return "Despesa";
-      case "investment":
-        return "Investimento";
       default:
         return type;
     }
   };
 
   const canBeSelected = transaction.payment_status === "pending" && 
-                       transaction.payment_method !== "invoice" && 
-                       transaction.type !== "investment";
+                       transaction.payment_method !== "invoice";
 
   return (
     <div 
       className={cn(
         "flex items-center justify-between p-4 border-l-4 rounded-lg bg-card hover:bg-accent/50 transition-colors",
-        transaction.type === "investment" ? "border-l-blue-500 bg-blue-50/50" : 
         transaction.type === "income" ? "border-l-green-500" : "border-l-red-500",
         isSelected && "bg-accent"
       )}
@@ -89,9 +83,6 @@ export function TransactionItem({
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {transaction.type === "investment" && (
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-            )}
             <p className="text-sm font-medium truncate">
               {transaction.description}
             </p>
@@ -123,8 +114,7 @@ export function TransactionItem({
       </div>
 
       {transaction.payment_status === "pending" && 
-       transaction.payment_method !== "invoice" && 
-       transaction.type !== "investment" && (
+       transaction.payment_method !== "invoice" && (
         <Button
           size="sm"
           variant="outline"
