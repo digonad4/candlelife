@@ -28,7 +28,7 @@ export function TransactionFilters({
   onPrintExtract,
 }: TransactionFiltersProps) {
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-4">
       <DateFilter
         dateRange={dateRange}
         startDate={startDate}
@@ -37,15 +37,17 @@ export function TransactionFilters({
         onStartDateChange={onStartDateChange}
         onEndDateChange={onEndDateChange}
       />
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row gap-3 w-full">
         <Input
           type="text"
-          placeholder="Pesquisar por cliente, descrição, valor ou data..."
+          placeholder="Pesquisar transações..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full md:w-1/2"
+          className="w-full sm:flex-1"
         />
-        <Button onClick={onPrintExtract}>Imprimir Extrato</Button>
+        <Button onClick={onPrintExtract} className="w-full sm:w-auto whitespace-nowrap">
+          Imprimir Extrato
+        </Button>
       </div>
     </div>
   );

@@ -25,8 +25,8 @@ export function TransactionsHeader({
   onPrintExtract
 }: TransactionsHeaderProps) {
   return (
-    <div className="w-full space-y-4">
-      <h1 className="text-3xl font-bold text-foreground">Transações</h1>
+    <div className="w-full max-w-full space-y-4">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Transações</h1>
       
       <TransactionFilters
         dateRange={dateRange}

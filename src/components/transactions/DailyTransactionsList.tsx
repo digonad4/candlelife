@@ -50,7 +50,7 @@ export function DailyTransactionsList({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="w-full space-y-6 sm:space-y-8">
       {/* Ações globais para todas as transações */}
       {selectedTransactions.size > 0 && (
         <TransactionActions
@@ -65,10 +65,10 @@ export function DailyTransactionsList({
 
       {/* Lista completa de dias */}
       {days.map(([date, transactions]) => (
-        <div key={date} className="space-y-4">
-          <h3 className="text-lg font-medium text-foreground border-b pb-2">{date}</h3>
+        <div key={date} className="w-full space-y-3 sm:space-y-4">
+          <h3 className="text-base sm:text-lg font-medium text-foreground border-b pb-2 truncate">{date}</h3>
           {transactions.length > 0 ? (
-            <div className="space-y-4">
+            <div className="w-full space-y-3 sm:space-y-4">
               {transactions.map((transaction) => (
                 <TransactionItemRow
                   key={transaction.id}
@@ -82,7 +82,7 @@ export function DailyTransactionsList({
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">Nenhuma transação neste dia</p>
+            <p className="text-muted-foreground text-sm sm:text-base">Nenhuma transação neste dia</p>
           )}
         </div>
       ))}
