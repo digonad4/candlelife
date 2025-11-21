@@ -34,13 +34,13 @@ export function TransactionsContent({
   onDeleteSelected
 }: TransactionsContentProps) {
   return (
-    <Card className="rounded-xl border-border bg-card w-full">
-      <CardHeader>
-        <CardTitle className="text-card-foreground">
+    <Card className="w-full max-w-full rounded-xl border-border bg-card overflow-hidden">
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="text-card-foreground text-lg sm:text-xl">
           {searchTerm ? "Resultados da Pesquisa" : "Histórico de Transações"}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6">
         <TransactionActionBar
           selectedTransactions={selectedTransactions}
           onSelectAll={onSelectAll}
@@ -50,9 +50,9 @@ export function TransactionsContent({
         />
         
         {isLoading ? (
-          <p className="text-center text-muted-foreground">Carregando...</p>
+          <p className="text-center text-muted-foreground py-8">Carregando...</p>
         ) : days.length === 0 ? (
-          <p className="text-muted-foreground">Nenhuma transação encontrada para o período selecionado.</p>
+          <p className="text-center text-muted-foreground py-8">Nenhuma transação encontrada para o período selecionado.</p>
         ) : (
           <DailyTransactionsList
             days={days}

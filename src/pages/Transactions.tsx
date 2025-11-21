@@ -56,7 +56,7 @@ const Transactions = () => {
   };
 
   return (
-    <div className="w-full max-w-full overflow-hidden space-y-4 sm:space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 sm:p-6">
+    <div className="w-full max-w-full overflow-hidden space-y-4 sm:space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
       <TransactionsHeader
         dateRange={dateRange}
         startDate={startDate}
@@ -106,7 +106,7 @@ const Transactions = () => {
       />
       
       {/* Mobile spacer */}
-      <div className="h-8 md:hidden" />
+      <div className="h-20 md:hidden" />
     </div>
   );
 };

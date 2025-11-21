@@ -15,29 +15,58 @@ export function TransactionActionBar({
   onDeleteSelected
 }: TransactionActionBarProps) {
   const hasSelected = selectedTransactions.size > 0;
-  return <div className="flex items-center gap-2 mb-4 p-3 bg-muted/50 rounded-lg px-0 py-0 my-0 mx-0">
-      <div className="flex items-center gap-2 flex-1">
-        <Button variant="outline" size="sm" onClick={onSelectAll} className="py-0 my-0">
-          Selecionar Todos
-        </Button>
-        
-        <Button variant="outline" size="sm" onClick={onDeselectAll} disabled={!hasSelected}>
-          Limpar Seleção
-        </Button>
-
-        {hasSelected && <span className="text-sm text-muted-foreground">
-            {selectedTransactions.size} selecionada(s)
-          </span>}
-      </div>
-
-      {hasSelected && <div className="flex items-center gap-2">
-          <Button size="sm" onClick={onConfirmSelected}>
-            Confirmar Selecionadas
+  
+  return (
+    <div className="w-full mb-4 p-3 bg-muted/50 rounded-lg">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-wrap items-center gap-2 flex-1">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onSelectAll}
+            className="flex-1 sm:flex-none"
+          >
+            Selecionar Todos
           </Button>
           
-          <Button variant="destructive" size="sm" onClick={onDeleteSelected}>
-            Excluir Selecionadas
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onDeselectAll} 
+            disabled={!hasSelected}
+            className="flex-1 sm:flex-none"
+          >
+            Limpar
           </Button>
-        </div>}
-    </div>;
+
+          {hasSelected && (
+            <span className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
+              {selectedTransactions.size} selecionada(s)
+            </span>
+          )}
+        </div>
+
+        {hasSelected && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              size="sm" 
+              onClick={onConfirmSelected}
+              className="flex-1 sm:flex-none"
+            >
+              Confirmar
+            </Button>
+            
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={onDeleteSelected}
+              className="flex-1 sm:flex-none"
+            >
+              Excluir
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

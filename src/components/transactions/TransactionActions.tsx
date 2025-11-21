@@ -20,49 +20,55 @@ export function TransactionActions({
   onDeleteSelected
 }: TransactionActionsProps) {
   return (
-    <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg border">
-      <span className="text-sm font-medium">
-        {selectedCount} selecionada{selectedCount > 1 ? 's' : ''}
-      </span>
-      
-      <div className="flex items-center gap-2 ml-auto">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onSelectAll}
-        >
-          <CheckSquare className="h-4 w-4 mr-1" />
-          Selecionar todas
-        </Button>
+    <div className="w-full p-3 sm:p-4 bg-muted/50 rounded-lg border space-y-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <span className="text-sm font-medium whitespace-nowrap">
+          {selectedCount} selecionada{selectedCount > 1 ? 's' : ''}
+        </span>
         
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onDeselectAll}
-        >
-          <Square className="h-4 w-4 mr-1" />
-          Desmarcar todas
-        </Button>
-        
-        {hasPendingSelected && (
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
           <Button
-            variant="default"
+            variant="outline"
             size="sm"
-            onClick={onConfirmSelected}
+            onClick={onSelectAll}
+            className="flex-1 sm:flex-none"
           >
-            <CheckCircle2 className="h-4 w-4 mr-1" />
-            Confirmar pagamento
+            <CheckSquare className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Selecionar todas</span>
           </Button>
-        )}
-        
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={onDeleteSelected}
-        >
-          <Trash2 className="h-4 w-4 mr-1" />
-          Excluir
-        </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDeselectAll}
+            className="flex-1 sm:flex-none"
+          >
+            <Square className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Desmarcar</span>
+          </Button>
+          
+          {hasPendingSelected && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={onConfirmSelected}
+              className="flex-1 sm:flex-none"
+            >
+              <CheckCircle2 className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Confirmar</span>
+            </Button>
+          )}
+          
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onDeleteSelected}
+            className="flex-1 sm:flex-none"
+          >
+            <Trash2 className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Excluir</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
