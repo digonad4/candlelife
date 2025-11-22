@@ -97,17 +97,19 @@ export function useOHLCData(startDate?: Date, endDate?: Date, timeRange: TimeRan
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
-  // Verificar se há necessidade de recalcular apenas na primeira carga
+  // Forçar recálculo após correção da lógica SQL
   useEffect(() => {
-    if (query.data && query.data.length > 0 && !startDate && !endDate) {
-      // Apenas recalcular automaticamente uma vez ao montar
-      const hasRun = sessionStorage.getItem('ohlc-refresh-check');
-      if (!hasRun) {
+    if (user && !startDate && !endDate) {
+      const lastRefresh = sessionStorage.getItem('ohlc-last-refresh');
+      const shouldRefresh = !lastRefresh || Date.now() - parseInt(lastRefresh) > 3600000; // 1 hora
+      
+      if (shouldRefresh) {
+        console.log('🔄 Recalculando dados OHLC com lógica corrigida...');
         refreshOHLC.mutate();
-        sessionStorage.setItem('ohlc-refresh-check', 'true');
+        sessionStorage.setItem('ohlc-last-refresh', Date.now().toString());
       }
     }
-  }, [query.data?.length]);
+  }, [user?.id]);
 
   return { ...query, refreshOHLC: refreshOHLC.mutate };
 }
