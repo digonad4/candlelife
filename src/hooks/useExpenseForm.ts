@@ -53,7 +53,7 @@ export function useExpenseForm(onTransactionAdded?: () => void) {
     try {
       const transactionData = {
         description,
-        amount: type === "expense" ? -Math.abs(Number(amount)) : Math.abs(Number(amount)),
+        amount: Math.abs(Number(amount)), // Sempre positivo, o type define se é ganho ou perda
         client_id: clientId,
         type,
         user_id: user.id,

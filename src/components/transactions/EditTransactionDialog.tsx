@@ -28,7 +28,7 @@ export function EditTransactionDialog({
 
   const [formData, setFormData] = useState({
     description: transaction?.description || "",
-    amount: transaction?.amount || 0,
+    amount: Math.abs(transaction?.amount || 0), // Garantir sempre valor positivo
     type: transaction?.type || "expense",
     payment_status: transaction?.payment_status || "pending",
     payment_method: transaction?.payment_method || "cash",
@@ -44,7 +44,7 @@ export function EditTransactionDialog({
         .from("transactions")
         .update({
           description: data.description,
-          amount: data.amount,
+          amount: Math.abs(data.amount), // Sempre salvar valor positivo
           type: data.type,
           payment_status: data.payment_status,
           payment_method: data.payment_method,
