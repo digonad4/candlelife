@@ -104,6 +104,7 @@ export const useRealtimeSubscription = ({
       event: '*',
       schema: 'public',
       table: tableName,
+      filter: `user_id=eq.${user.id}`
     }, (payload) => {
       console.log(`📢 ${tableName} change detected:`, payload);
       if (onDataChange) {

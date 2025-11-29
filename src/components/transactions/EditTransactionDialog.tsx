@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Transaction } from "@/types/transaction";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,13 +28,25 @@ export function EditTransactionDialog({
 
   const [formData, setFormData] = useState({
     description: transaction?.description || "",
-    amount: Math.abs(transaction?.amount || 0), // Garantir sempre valor positivo
+    amount: Math.abs(transaction?.amount || 0),
     type: transaction?.type || "expense",
     payment_status: transaction?.payment_status || "pending",
     payment_method: transaction?.payment_method || "cash",
-    date: transaction?.date ? new Date(transaction.date).toISOString().split('T')[0] : "",
     client_id: transaction?.client_id || null,
   });
+
+  useEffect(() => {
+    if (transaction) {
+      setFormData({
+        description: transaction.description || "",
+        amount: Math.abs(transaction.amount || 0),
+        type: transaction.type || "expense",
+        payment_status: transaction.payment_status || "pending",
+        payment_method: transaction.payment_method || "cash",
+        client_id: transaction.client_id || null,
+      });
+    }
+  }, [transaction]);
 
   const updateTransaction = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -44,11 +56,10 @@ export function EditTransactionDialog({
         .from("transactions")
         .update({
           description: data.description,
-          amount: Math.abs(data.amount), // Sempre salvar valor positivo
+          amount: Math.abs(data.amount),
           type: data.type,
           payment_status: data.payment_status,
           payment_method: data.payment_method,
-          date: data.date,
           client_id: data.client_id || null,
         })
         .eq("id", transaction.id)
@@ -82,11 +93,13 @@ export function EditTransactionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar Transação</DialogTitle>
+      <DialogContent className="w-[95vw] max-w-xl sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-3xl border-2 border-border/50 shadow-2xl">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50 bg-gradient-to-br from-background to-muted/20">
+          <DialogTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Editar Transação
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Input
@@ -156,17 +169,6 @@ export function EditTransactionDialog({
                 <SelectItem value="invoice">Boleto</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="date">Data</Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-            />
           </div>
 
           <div className="flex justify-end gap-2">

@@ -24,7 +24,7 @@ import Contact from "@/pages/Contact";
 import Support from "@/pages/Support";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
-import Analytics from "@/pages/Analytics";
+
 import NotFound from "@/pages/NotFound";
 
 import AppLayout from "@/components/layout/AppLayout";
@@ -59,7 +59,7 @@ function App() {
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="invoiced" element={<InvoicedTransactions />} />
-                <Route path="analytics" element={<Analytics />} />
+                
                 <Route path="clients" element={<Clients />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="about" element={<About />} />

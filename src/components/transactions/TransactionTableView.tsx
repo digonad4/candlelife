@@ -11,6 +11,7 @@ interface TransactionTableViewProps {
   selectedTransactions: string[];
   onSelectTransaction: (id: string) => void;
   onOpenConfirmDialog: (ids: string[]) => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 export function TransactionTableView({
@@ -19,6 +20,7 @@ export function TransactionTableView({
   selectedTransactions,
   onSelectTransaction,
   onOpenConfirmDialog,
+  onEdit,
 }: TransactionTableViewProps) {
   const isMobile = useIsMobile();
 
@@ -32,6 +34,7 @@ export function TransactionTableView({
           selectedTransactions={selectedTransactions}
           onSelectTransaction={onSelectTransaction}
           onOpenConfirmDialog={onOpenConfirmDialog}
+          onEdit={onEdit}
         />
       </Table>
     </div>

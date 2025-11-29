@@ -14,7 +14,7 @@ interface OHLCData {
   transaction_count: number;
 }
 
-type TimeRange = "individual" | "daily" | "weekly" | "monthly" | "yearly";
+export type TimeRange = "individual" | "daily" | "weekly" | "monthly" | "yearly";
 
 export function useOHLCData(startDate?: Date, endDate?: Date, timeRange: TimeRange = "individual") {
   const { user } = useAuth();
@@ -85,8 +85,8 @@ export function useOHLCData(startDate?: Date, endDate?: Date, timeRange: TimeRan
 
       const ohlcData = (data || []) as OHLCData[];
 
-      // Se for individual, retorna direto os dados diários
-      if (timeRange === "individual" || timeRange === "daily") {
+      // Se for individual, retorna direto sem agregação
+      if (timeRange === "individual") {
         return ohlcData;
       }
 
@@ -125,6 +125,9 @@ function aggregateByPeriod(data: OHLCData[], timeRange: TimeRange): OHLCData[] {
     let key: string;
 
     switch (timeRange) {
+      case "daily":
+        key = format(startOfDay(date), "yyyy-MM-dd");
+        break;
       case "weekly":
         key = format(startOfWeek(date), "yyyy-MM-dd");
         break;

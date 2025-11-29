@@ -6,7 +6,7 @@ import { Transaction } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertTriangle, CheckCircle, Clock, TrendingUp } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, TrendingUp, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TransactionItemProps {
@@ -14,6 +14,7 @@ interface TransactionItemProps {
   isSelected?: boolean;
   onToggleSelection?: (id: string) => void;
   onOpenConfirmDialog?: (ids: string[]) => void;
+  onEdit?: (transaction: Transaction) => void;
   showSelection?: boolean;
 }
 
@@ -22,6 +23,7 @@ export function TransactionItem({
   isSelected = false,
   onToggleSelection,
   onOpenConfirmDialog,
+  onEdit,
   showSelection = false,
 }: TransactionItemProps) {
   const formatCurrency = (amount: number) =>
@@ -113,17 +115,27 @@ export function TransactionItem({
         </p>
       </div>
 
-      {transaction.payment_status === "pending" && 
-       transaction.payment_method !== "invoice" && (
+      <div className="flex gap-2 ml-2">
         <Button
           size="sm"
-          variant="outline"
-          onClick={() => onOpenConfirmDialog?.([transaction.id])}
-          className="ml-2"
+          variant="ghost"
+          onClick={() => onEdit?.(transaction)}
+          title="Editar transação"
         >
-          Confirmar
+          <Pencil className="h-4 w-4" />
         </Button>
-      )}
+        
+        {transaction.payment_status === "pending" && 
+         transaction.payment_method !== "invoice" && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onOpenConfirmDialog?.([transaction.id])}
+          >
+            Confirmar
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

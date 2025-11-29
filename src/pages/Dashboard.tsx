@@ -4,13 +4,11 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ExpenseModal } from "@/components/ExpenseModal";
 import RecentTransactions from "@/components/RecentTransactions";
-import { ExpenseChart } from "@/components/ExpenseChart";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { subDays } from "date-fns";
 import { DateFilter } from "@/components/dashboard/DateFilter";
-import { EnhancedFinancialInsights } from "@/components/insights/EnhancedFinancialInsights";
-import { SmartInsights } from "@/components/analytics/SmartInsights";
+import { ClientDebtsList } from "@/components/clients/ClientDebtsList";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
@@ -59,18 +57,8 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Enhanced Financial Insights with Goals */}
-      <EnhancedFinancialInsights />
-
-      {/* Smart Insights Preview */}
-      <div className="grid gap-6">
-        <SmartInsights />
-      </div>
-
-      {/* Chart - Sempre mostra TODAS as transações */}
-      <div className="w-full">
-        <ExpenseChart />
-      </div>
+      {/* Clientes em Débito */}
+      <ClientDebtsList />
 
       {/* Transactions and values */}
       <RecentTransactions startDate={startDate} endDate={endDate} />
@@ -97,19 +85,7 @@ const Dashboard = () => {
             queryKey: ["recent-transactions"]
           });
           queryClient.invalidateQueries({
-            queryKey: ["transaction-candles"]
-          });
-          queryClient.invalidateQueries({
-            queryKey: ["expense-chart"]
-          });
-          queryClient.invalidateQueries({
-            queryKey: ["financial-insights"]
-          });
-          queryClient.invalidateQueries({
-            queryKey: ["financial-goals"]
-          });
-          queryClient.invalidateQueries({
-            queryKey: ["ohlc-data"]
+            queryKey: ["client-debts"]
           });
         }} 
       />

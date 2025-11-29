@@ -8,6 +8,7 @@ interface TransactionListProps {
   selectedTransactions: string[];
   onSelectTransaction: (id: string, isPending: boolean) => void;
   onOpenConfirmDialog: (ids: string[]) => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 export function TransactionList({
@@ -16,6 +17,7 @@ export function TransactionList({
   selectedTransactions,
   onSelectTransaction,
   onOpenConfirmDialog,
+  onEdit,
 }: TransactionListProps) {
   if (isLoading) {
     return <p className="text-muted-foreground dark:text-gray-400">Carregando...</p>;
@@ -47,6 +49,7 @@ export function TransactionList({
           isSelected={selectedTransactions.includes(transaction.id)}
           onToggleSelection={handleToggleSelection}
           onOpenConfirmDialog={onOpenConfirmDialog}
+          onEdit={onEdit}
           showSelection={true}
         />
       ))}

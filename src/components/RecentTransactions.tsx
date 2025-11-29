@@ -13,6 +13,8 @@ import { TransactionSearchFilter } from "./transactions/TransactionSearchFilter"
 import { TransactionSelectionControls } from "./transactions/TransactionSelectionControls";
 import { TransactionTableView } from "./transactions/TransactionTableView";
 import { useViewMode } from "@/hooks/useViewMode";
+import { ExpenseModal } from "./ExpenseModal";
+
 interface RecentTransactionsProps {
   startDate?: Date;
   endDate?: Date;
@@ -21,22 +23,23 @@ const RecentTransactions = ({
   startDate,
   endDate
 }: RecentTransactionsProps) => {
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const {
-    viewMode,
-    toggleViewMode
-  } = useViewMode(user?.id);
-  const formattedStartDate = startDate ? format(startDate, "yyyy-MM-dd'T00:00:00.000Z'") : format(new Date(), "yyyy-MM-dd'T00:00:00.000Z'");
-  const formattedEndDate = endDate ? format(endDate, "yyyy-MM-dd'T23:59:59.999Z'") : format(new Date(), "yyyy-MM-dd'T23:59:59.999Z'");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const { viewMode, toggleViewMode } = useViewMode(user?.id);
+  // Usa timezone local ao invés de UTC para resolver problemas com transações após 21h
+  const formattedStartDate = startDate 
+    ? format(new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 0, 0, 0), "yyyy-MM-dd'T'HH:mm:ss")
+    : format(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 0, 0, 0), "yyyy-MM-dd'T'HH:mm:ss");
+  
+  const formattedEndDate = endDate 
+    ? format(new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59), "yyyy-MM-dd'T'HH:mm:ss")
+    : format(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 23, 59, 59), "yyyy-MM-dd'T'HH:mm:ss");
   const {
     data: transactions,
     isLoading
@@ -68,9 +71,7 @@ const RecentTransactions = ({
         description: "Os pagamentos foram atualizados."
       });
       queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-candles"] });
-      queryClient.invalidateQueries({ queryKey: ["ohlc-data"] });
-      queryClient.invalidateQueries({ queryKey: ["financial-insights"] });
+      queryClient.invalidateQueries({ queryKey: ["client-debts"] });
       setSelectedTransactions([]);
       setIsConfirmDialogOpen(false);
     } catch (error) {
@@ -110,6 +111,21 @@ const RecentTransactions = ({
     return clientName.toLowerCase().includes(searchTerm.toLowerCase()) || transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) || transaction.description?.toLowerCase().includes(searchTerm.toLowerCase()) || transaction.amount.toString().includes(searchTerm);
   });
 
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingTransaction(null);
+  };
+
+  const handleTransactionUpdated = () => {
+    queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["client-debts"] });
+  };
+
   // Check if there are any pending non-invoiced transactions
   const hasSelectablePending = (transactions || []).some(t => t.payment_status === "pending" && t.payment_method !== "invoice");
   return <Card className="rounded-xl border-border bg-card text-card-foreground">
@@ -122,13 +138,20 @@ const RecentTransactions = ({
         <div>
           <TransactionSelectionControls selectedTransactions={selectedTransactions} hasSelectablePending={hasSelectablePending} isLoading={isLoading} onSelectAllPending={handleSelectAllPending} onClearSelection={handleClearSelection} onConfirmSelected={() => handleOpenConfirmDialog()} />
 
-          {viewMode === "list" ? <TransactionList transactions={filteredTransactions} isLoading={isLoading} selectedTransactions={selectedTransactions} onSelectTransaction={handleSelectTransaction} onOpenConfirmDialog={handleOpenConfirmDialog} /> : <TransactionTableView transactions={filteredTransactions} isLoading={isLoading} selectedTransactions={selectedTransactions} onSelectTransaction={handleSelectTransaction} onOpenConfirmDialog={handleOpenConfirmDialog} />}
+          {viewMode === "list" ? <TransactionList transactions={filteredTransactions} isLoading={isLoading} selectedTransactions={selectedTransactions} onSelectTransaction={handleSelectTransaction} onOpenConfirmDialog={handleOpenConfirmDialog} onEdit={handleEditTransaction} /> : <TransactionTableView transactions={filteredTransactions} isLoading={isLoading} selectedTransactions={selectedTransactions} onSelectTransaction={handleSelectTransaction} onOpenConfirmDialog={handleOpenConfirmDialog} onEdit={handleEditTransaction} />}
         </div>
 
         <FinancialSummary transactions={filteredTransactions} />
       </CardContent>
 
       <ConfirmPaymentsDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen} onConfirm={handleConfirmPayments} count={selectedTransactions.length} />
+      
+      <ExpenseModal 
+        open={isEditModalOpen}
+        onOpenChange={handleCloseEditModal}
+        onTransactionAdded={handleTransactionUpdated}
+        transaction={editingTransaction}
+      />
     </Card>;
 };
 export default RecentTransactions;

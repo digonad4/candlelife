@@ -1,7 +1,7 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -12,6 +12,7 @@ interface TransactionTableRowProps {
   isSelected: boolean;
   onSelectTransaction: (id: string) => void;
   onOpenConfirmDialog: (ids: string[]) => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 export function TransactionTableRow({
@@ -19,6 +20,7 @@ export function TransactionTableRow({
   isSelected,
   onSelectTransaction,
   onOpenConfirmDialog,
+  onEdit,
 }: TransactionTableRowProps) {
   return (
     <TableRow key={transaction.id}>
@@ -74,6 +76,29 @@ export function TransactionTableRow({
           style: "currency",
           currency: "BRL",
         })}
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onEdit?.(transaction)}
+            title="Editar transação"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          
+          {transaction.payment_status === "pending" && 
+           transaction.payment_method !== "invoice" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onOpenConfirmDialog([transaction.id])}
+            >
+              Confirmar
+            </Button>
+          )}
+        </div>
       </TableCell>
     </TableRow>
   );

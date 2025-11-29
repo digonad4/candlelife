@@ -10,7 +10,6 @@ import {
   LogOut,
   Target,
   TrendingUp,
-  Brain,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -54,7 +53,6 @@ export function AppSidebar() {
     { icon: TrendingUp, label: "Receitas", href: "/transactions?type=income" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
-    { icon: Brain, label: "Analytics IA", href: "/analytics" },
   ];
 
   const managementMenuItems = [

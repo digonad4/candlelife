@@ -59,13 +59,9 @@ export function TransactionsContent({
             selectedTransactions={selectedTransactions}
             isLoading={isLoading}
             onSelectTransaction={onToggleSelection}
-            onSelectAll={onSelectAll}
-            onDeselectAll={onDeselectAll}
             onEdit={onEdit}
             onDelete={onDelete}
             onConfirmPayment={onConfirmPayment}
-            onConfirmSelected={onConfirmSelected}
-            onDeleteSelected={onDeleteSelected}
           />
         )}
       </CardContent>

@@ -9,6 +9,7 @@ interface TransactionTableBodyProps {
   selectedTransactions: string[];
   onSelectTransaction: (id: string) => void;
   onOpenConfirmDialog: (ids: string[]) => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 export function TransactionTableBody({
@@ -16,7 +17,8 @@ export function TransactionTableBody({
   isLoading,
   selectedTransactions,
   onSelectTransaction,
-  onOpenConfirmDialog
+  onOpenConfirmDialog,
+  onEdit
 }: TransactionTableBodyProps) {
   if (isLoading) {
     return (
@@ -51,6 +53,7 @@ export function TransactionTableBody({
           isSelected={selectedTransactions.includes(transaction.id)}
           onSelectTransaction={onSelectTransaction}
           onOpenConfirmDialog={onOpenConfirmDialog}
+          onEdit={onEdit}
         />
       ))}
     </TableBody>
