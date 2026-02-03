@@ -30,22 +30,14 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full md:hidden">
-            <span className="text-xs font-semibold text-primary">Visão Geral</span>
-          </div>
-        </div>
-        <div className="hidden md:block px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
-          <span className="text-sm font-semibold text-primary">Visão Geral</span>
+    <div className="w-full space-y-4 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
+        <div className="px-2 py-1 bg-primary/10 border border-primary/20 rounded-full">
+          <span className="text-xs font-medium text-primary">Visão Geral</span>
         </div>
       </div>
 
-      {/* Date selector */}
       <div className="w-full max-w-full overflow-hidden">
         <DateFilter 
           dateRange={dateRange} 
@@ -57,41 +49,32 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Clientes em Débito */}
       <ClientDebtsList />
 
-      {/* Transactions and values */}
       <RecentTransactions startDate={startDate} endDate={endDate} />
 
-      {/* Rounded button to add transaction - positioned correctly */}
       <Button 
         size="lg" 
         onClick={() => setIsModalOpen(true)} 
-        className={`fixed shadow-lg flex items-center justify-center z-30 rounded-full w-12 h-12 md:w-14 md:h-14 ${
+        className={`fixed shadow-lg flex items-center justify-center z-30 rounded-full w-11 h-11 md:w-12 md:h-12 ${
           isMobile 
-            ? 'bottom-28 right-4' // Above mobile navigation
-            : 'bottom-20 right-6' // Above desktop footer
+            ? 'bottom-24 right-3'
+            : 'bottom-16 right-4'
         }`}
       >
-        <Plus className="w-5 h-5" />
+        <Plus className="w-4 h-4" />
       </Button>
 
       <ExpenseModal 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 
         onTransactionAdded={() => {
-          console.log("📌 Nova transação adicionada. Invalidando cache...");
-          queryClient.invalidateQueries({
-            queryKey: ["recent-transactions"]
-          });
-          queryClient.invalidateQueries({
-            queryKey: ["client-debts"]
-          });
+          queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+          queryClient.invalidateQueries({ queryKey: ["client-debts"] });
         }} 
       />
       
-      {/* Mobile spacer */}
-      <div className="h-8 md:hidden" />
+      <div className="h-16 md:hidden" />
     </div>
   );
 };

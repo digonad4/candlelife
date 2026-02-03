@@ -2,7 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   CreditCard, 
-  Target, 
   Users, 
   Settings, 
   TrendingDown,
@@ -10,9 +9,7 @@ import {
   TrendingUp,
   MoreHorizontal,
   LogOut,
-  Bell,
-  Search,
-  Plus
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -62,7 +59,7 @@ export const ProfessionalMobileNav = () => {
 
   // Secondary features
   const secondaryNavItems = [
-    { icon: Users, label: "Clientes", href: "/clients" },
+    { icon: BarChart3, label: "Análise", href: "/analytics" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
     { icon: Settings, label: "Configurações", href: "/settings" },

@@ -23,21 +23,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/50 to-secondary/20 p-4">
-      <div className="w-full max-w-md animate-fade-in">
-        <Card className="border shadow-2xl bg-card/95 backdrop-blur-sm mx-auto">
-          <CardHeader className="space-y-2 text-center pb-6">
-            <CardTitle className="text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-sm animate-fade-in">
+        <Card className="border shadow-lg bg-card mx-auto">
+          <CardHeader className="space-y-1 text-center pb-4">
+            <CardTitle className="text-xl font-bold text-foreground">
               {isSignUp ? "Criar conta" : "Entrar"}
             </CardTitle>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-xs">
               {isSignUp 
-                ? "Crie sua conta para começar a jornada" 
-                : "Entre em sua conta para continuar"
+                ? "Crie sua conta para começar" 
+                : "Entre para continuar"
               }
             </p>
           </CardHeader>
-          <CardContent className="px-8 pb-8">
+          <CardContent className="px-6 pb-6">
             {isSignUp ? (
               <SignUpForm toggleView={toggleView} />
             ) : (
