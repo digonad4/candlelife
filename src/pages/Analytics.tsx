@@ -1,120 +1,190 @@
-import { TradingDashboard } from "@/components/analytics/TradingDashboard";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, TrendingUp, Zap, BarChart3, Target, Sparkles } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { SmartChart } from "@/components/analytics/SmartChart";
+import { useOHLCData } from "@/hooks/useOHLCData";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { startOfMonth, endOfMonth, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function Analytics() {
+  const { user } = useAuth();
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const startDate = startOfMonth(selectedMonth);
+  const endDate = endOfMonth(selectedMonth);
+  
+  const { data: ohlcData, isLoading: ohlcLoading } = useOHLCData(startDate, endDate, "daily");
+  
+  const { data: transactions } = useQuery({
+    queryKey: ["analytics-transactions", user?.id, startDate.toISOString(), endDate.toISOString()],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("payment_status", "confirmed")
+        .gte("date", startDate.toISOString())
+        .lte("date", endDate.toISOString());
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { totalIncome, totalExpenses, balance, transactionCount } = useMemo(() => {
+    if (!transactions) return { totalIncome: 0, totalExpenses: 0, balance: 0, transactionCount: 0 };
+    
+    const income = transactions
+      .filter(t => t.type === "income")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const expenses = transactions
+      .filter(t => t.type === "expense")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+    return {
+      totalIncome: income,
+      totalExpenses: expenses,
+      balance: income - expenses,
+      transactionCount: transactions.length
+    };
+  }, [transactions]);
+
+  const handlePreviousMonth = () => {
+    setSelectedMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const stats = [
+    {
+      title: "Receitas",
+      value: `R$ ${totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      icon: TrendingUp,
+      color: "text-green-500"
+    },
+    {
+      title: "Despesas",
+      value: `R$ ${totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      icon: TrendingDown,
+      color: "text-red-500"
+    },
+    {
+      title: "Saldo",
+      value: `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      icon: DollarSign,
+      color: balance >= 0 ? "text-green-500" : "text-red-500"
+    },
+    {
+      title: "Transações",
+      value: transactionCount.toString(),
+      icon: BarChart3,
+      color: "text-primary"
+    }
+  ];
+
   return (
-    <div className="w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600">
-              <Brain className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                Analytics Inteligente
-              </h1>
-              <p className="text-muted-foreground">
-                Análise profissional com inteligência artificial para otimizar suas finanças
-              </p>
-            </div>
-          </div>
-          <Badge variant="outline" className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Powered by AI
-          </Badge>
+    <div className="w-full space-y-4 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Análise Mensal</h1>
         </div>
+        <Badge variant="outline" className="text-xs">
+          <Calendar className="h-3 w-3 mr-1" />
+          {format(selectedMonth, "MMM yyyy", { locale: ptBR })}
+        </Badge>
       </div>
 
-      {/* Main Trading Dashboard */}
-      <TradingDashboard />
-      
-      {/* Future Features Preview */}
-      <Card className="trading-card border-l-4 border-l-amber-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
-            <Zap className="h-5 w-5" />
-            Próximas Funcionalidades IA
+      <div className="flex items-center justify-center gap-2">
+        <Button variant="outline" size="sm" onClick={handlePreviousMonth} className="text-xs h-7">
+          ← Anterior
+        </Button>
+        <span className="text-sm font-medium px-3">
+          {format(selectedMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+        </span>
+        <Button variant="outline" size="sm" onClick={handleNextMonth} className="text-xs h-7">
+          Próximo →
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {stats.map((stat) => (
+          <Card key={stat.title} className="rounded-lg border-border bg-card">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <stat.icon className={cn("h-4 w-4", stat.color)} />
+                <span className="text-xs text-muted-foreground">{stat.title}</span>
+              </div>
+              <p className={cn("text-sm font-bold mt-1", stat.color)}>
+                {stat.value}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="rounded-lg border-border bg-card">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Gráfico de Desempenho
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900">
-                  <Brain className="h-5 w-5 text-purple-600" />
-                </div>
-                <h4 className="font-semibold">🤖 IA Preditiva</h4>
+        <CardContent className="p-0">
+          <div className="h-[350px] sm:h-[400px] m-2 sm:m-3 rounded-lg overflow-hidden">
+            {ohlcLoading ? (
+              <div className="w-full h-full bg-muted/20 animate-pulse flex items-center justify-center">
+                <span className="text-sm text-muted-foreground">Carregando...</span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Previsões avançadas baseadas em machine learning dos seus padrões financeiros e tendências de mercado.
-              </p>
+            ) : (
+              <SmartChart startDate={startDate} endDate={endDate} />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-lg border-border bg-card">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="text-sm font-medium">Resumo do Período</CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 pt-0">
+          <div className="grid gap-3 text-sm">
+            <div className="flex justify-between py-2 border-b border-border">
+              <span className="text-muted-foreground">Período</span>
+              <span className="font-medium">
+                {format(startDate, "dd/MM")} - {format(endDate, "dd/MM/yyyy")}
+              </span>
             </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
-                  <BarChart3 className="h-5 w-5 text-green-600" />
-                </div>
-                <h4 className="font-semibold">📈 Indicadores Técnicos</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                RSI, MACD, Médias Móveis e outros indicadores profissionais aplicados às suas finanças pessoais.
-              </p>
+            <div className="flex justify-between py-2 border-b border-border">
+              <span className="text-muted-foreground">Total de Transações</span>
+              <span className="font-medium">{transactionCount}</span>
             </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-                  <Target className="h-5 w-5 text-blue-600" />
-                </div>
-                <h4 className="font-semibold">🎯 Metas Automáticas</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Sugestões inteligentes de metas financeiras personalizadas com base no seu perfil de investidor.
-              </p>
+            <div className="flex justify-between py-2 border-b border-border">
+              <span className="text-muted-foreground">Média Diária de Receita</span>
+              <span className="font-medium text-green-500">
+                R$ {(totalIncome / 30).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
             </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900">
-                  <TrendingUp className="h-5 w-5 text-orange-600" />
-                </div>
-                <h4 className="font-semibold">📊 Análise de Cenários</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Simulações "e se" para planejamento financeiro avançado com diferentes cenários de mercado.
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900">
-                  <Zap className="h-5 w-5 text-red-600" />
-                </div>
-                <h4 className="font-semibold">⚡ Alertas Inteligentes</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Notificações proativas sobre oportunidades de investimento e riscos financeiros.
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900">
-                  <Brain className="h-5 w-5 text-indigo-600" />
-                </div>
-                <h4 className="font-semibold">🧠 Coach Financeiro IA</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Assistant pessoal com coaching financeiro personalizado baseado em seus objetivos.
-              </p>
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">Média Diária de Despesa</span>
+              <span className="font-medium text-red-500">
+                R$ {(totalExpenses / 30).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
         </CardContent>
       </Card>
+      
+      <div className="h-16 md:hidden" />
     </div>
   );
 }

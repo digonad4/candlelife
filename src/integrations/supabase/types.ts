@@ -699,8 +699,8 @@ export type Database = {
         }[]
       }
       get_total_reactions_count:
-        | { Args: { post_id: string }; Returns: Json }
         | { Args: never; Returns: number }
+        | { Args: { post_id: string }; Returns: Json }
       get_user_groups: {
         Args: { p_user_id: string }
         Returns: {
