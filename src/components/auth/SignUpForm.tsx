@@ -69,20 +69,34 @@ const SignUpForm = ({ toggleView }: SignUpFormProps) => {
         throw new Error("Você precisa aceitar a política de dados");
       }
 
-      // Signup
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error("Por favor, insira um email válido");
+      }
+
+      // Signup com redirect URL
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
       });
 
       if (signUpError) {
         if (signUpError.status === 429) {
           toast({
             variant: "destructive",
-            title: "Erro",
-            description: "Muitas tentativas de cadastro. Por favor, espere e tente novamente mais tarde.",
+            title: "Limite de tentativas",
+            description: "Muitas tentativas de cadastro. Por favor, espere alguns minutos.",
           });
           return;
+        }
+        // Tratar erro de usuário já existe
+        if (signUpError.message.includes("already registered") || 
+            signUpError.message.includes("User already registered")) {
+          throw new Error("Este email já está cadastrado. Tente fazer login.");
         }
         throw signUpError;
       }
