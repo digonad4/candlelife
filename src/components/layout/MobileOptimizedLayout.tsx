@@ -24,15 +24,13 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="flex min-h-screen w-full">
-        {/* Desktop Sidebar - always visible on md+ */}
+      <div className="flex min-h-[100dvh] w-full">
         <AppSidebar />
         
-        {/* Main Content */}
-        <SidebarInset className="flex-1 flex flex-col">
+        <SidebarInset className="flex-1 flex flex-col min-h-[100dvh]">
           <main className={cn(
             "flex-1 overflow-auto bg-background",
-            isMobile ? "pb-24 px-3 py-4" : "p-6"
+            isMobile ? "pb-20 px-2 pt-2" : "p-4"
           )}>
             <div className={cn(
               "h-full w-full",
@@ -42,7 +40,6 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
             </div>
           </main>
 
-          {/* Mobile Navigation - only on mobile */}
           {isMobile && <ProfessionalMobileNav />}
         </SidebarInset>
       </div>

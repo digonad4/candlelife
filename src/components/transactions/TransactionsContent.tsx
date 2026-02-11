@@ -1,5 +1,5 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DailyTransactionsList } from "@/components/transactions/DailyTransactionsList";
 import { TransactionActionBar } from "@/components/transactions/TransactionActionBar";
 import { Transaction } from "@/types/transaction";
@@ -20,48 +20,31 @@ interface TransactionsContentProps {
 }
 
 export function TransactionsContent({
-  days,
-  isLoading,
-  selectedTransactions,
-  searchTerm,
-  onToggleSelection,
-  onSelectAll,
-  onDeselectAll,
-  onEdit,
-  onDelete,
-  onConfirmPayment,
-  onConfirmSelected,
-  onDeleteSelected
+  days, isLoading, selectedTransactions, searchTerm,
+  onToggleSelection, onSelectAll, onDeselectAll,
+  onEdit, onDelete, onConfirmPayment, onConfirmSelected, onDeleteSelected
 }: TransactionsContentProps) {
   return (
-    <Card className="w-full max-w-full rounded-xl border-border bg-card overflow-hidden">
-      <CardHeader className="px-4 sm:px-6">
-        <CardTitle className="text-card-foreground text-lg sm:text-xl">
-          {searchTerm ? "Resultados da Pesquisa" : "Histórico de Transações"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 sm:px-6">
+    <Card className="rounded-lg border-border bg-card overflow-hidden">
+      <CardContent className="p-3">
+        <h3 className="text-sm font-semibold mb-2">
+          {searchTerm ? "Resultados" : "Histórico"}
+        </h3>
         <TransactionActionBar
           selectedTransactions={selectedTransactions}
-          onSelectAll={onSelectAll}
-          onDeselectAll={onDeselectAll}
-          onConfirmSelected={onConfirmSelected}
-          onDeleteSelected={onDeleteSelected}
+          onSelectAll={onSelectAll} onDeselectAll={onDeselectAll}
+          onConfirmSelected={onConfirmSelected} onDeleteSelected={onDeleteSelected}
         />
         
         {isLoading ? (
-          <p className="text-center text-muted-foreground py-8">Carregando...</p>
+          <p className="text-center text-muted-foreground py-4 text-xs">Carregando...</p>
         ) : days.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Nenhuma transação encontrada para o período selecionado.</p>
+          <p className="text-center text-muted-foreground py-4 text-xs">Nenhuma transação encontrada.</p>
         ) : (
           <DailyTransactionsList
-            days={days}
-            selectedTransactions={selectedTransactions}
-            isLoading={isLoading}
-            onSelectTransaction={onToggleSelection}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onConfirmPayment={onConfirmPayment}
+            days={days} selectedTransactions={selectedTransactions}
+            isLoading={isLoading} onSelectTransaction={onToggleSelection}
+            onEdit={onEdit} onDelete={onDelete} onConfirmPayment={onConfirmPayment}
           />
         )}
       </CardContent>

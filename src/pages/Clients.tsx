@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ClientsList } from "@/components/clients/ClientsList";
 import { ClientForm } from "@/components/clients/ClientForm";
 import { Button } from "@/components/ui/button";
@@ -15,17 +15,12 @@ export default function Clients() {
     email: string | null;
     document: string | null;
     phone: string | null;
-    // Add other fields as necessary
   }
 
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
 
   const handleOpenClientForm = (client?: Client) => {
-    if (client) {
-      setClientToEdit(client);
-    } else {
-      setClientToEdit(null);
-    }
+    setClientToEdit(client || null);
     setIsClientFormOpen(true);
   };
 
@@ -35,22 +30,17 @@ export default function Clients() {
   };
 
   return (
-    <div className="w-full space-y-6 safe-area-top safe-area-bottom max-w-7xl mx-auto p-4 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold">
-          Gerenciamento de Clientes
-        </h1>
-        <Button onClick={() => handleOpenClientForm()}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Novo Cliente
+    <div className="w-full space-y-3 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-bold">Clientes</h1>
+        <Button size="sm" className="h-8 text-xs" onClick={() => handleOpenClientForm()}>
+          <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+          Novo
         </Button>
       </div>
 
-      <Card className="rounded-xl border-border bg-card">
-        <CardHeader className="p-6">
-          <CardTitle>Seus Clientes</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
+      <Card className="rounded-lg border-border bg-card">
+        <CardContent className="p-3">
           <ClientsList onEditClient={handleOpenClientForm} />
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ExpenseModal } from "@/components/ExpenseModal";
@@ -21,7 +21,6 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
   const queryClient = useQueryClient();
 
-  // Use centralized realtime subscription
   useRealtimeSubscription({
     tableName: 'transactions',
     onDataChange: () => {
@@ -30,24 +29,22 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="w-full space-y-4 max-w-7xl mx-auto px-3 py-3 sm:px-4 sm:py-4">
+    <div className="w-full space-y-3 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
-        <div className="px-2 py-1 bg-primary/10 border border-primary/20 rounded-full">
-          <span className="text-xs font-medium text-primary">Visão Geral</span>
+        <h1 className="text-lg font-bold text-foreground">Dashboard</h1>
+        <div className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-full">
+          <span className="text-[10px] font-medium text-primary">Visão Geral</span>
         </div>
       </div>
 
-      <div className="w-full max-w-full overflow-hidden">
-        <DateFilter 
-          dateRange={dateRange} 
-          startDate={startDate} 
-          endDate={endDate} 
-          onDateRangeChange={setDateRange} 
-          onStartDateChange={setStartDate} 
-          onEndDateChange={setEndDate} 
-        />
-      </div>
+      <DateFilter 
+        dateRange={dateRange} 
+        startDate={startDate} 
+        endDate={endDate} 
+        onDateRangeChange={setDateRange} 
+        onStartDateChange={setStartDate} 
+        onEndDateChange={setEndDate} 
+      />
 
       <ClientDebtsList />
 
@@ -56,10 +53,10 @@ const Dashboard = () => {
       <Button 
         size="lg" 
         onClick={() => setIsModalOpen(true)} 
-        className={`fixed shadow-lg flex items-center justify-center z-30 rounded-full w-11 h-11 md:w-12 md:h-12 ${
+        className={`fixed shadow-lg flex items-center justify-center z-30 rounded-full w-11 h-11 ${
           isMobile 
             ? 'bottom-24 right-3'
-            : 'bottom-16 right-4'
+            : 'bottom-8 right-4'
         }`}
       >
         <Plus className="w-4 h-4" />
@@ -73,8 +70,6 @@ const Dashboard = () => {
           queryClient.invalidateQueries({ queryKey: ["client-debts"] });
         }} 
       />
-      
-      <div className="h-16 md:hidden" />
     </div>
   );
 };
