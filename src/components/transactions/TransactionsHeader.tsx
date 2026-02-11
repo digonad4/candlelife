@@ -14,30 +14,18 @@ interface TransactionsHeaderProps {
 }
 
 export function TransactionsHeader({
-  dateRange,
-  startDate,
-  endDate,
-  searchTerm,
-  onDateRangeChange,
-  onStartDateChange,
-  onEndDateChange,
-  onSearchChange,
-  onPrintExtract
+  dateRange, startDate, endDate, searchTerm,
+  onDateRangeChange, onStartDateChange, onEndDateChange,
+  onSearchChange, onPrintExtract
 }: TransactionsHeaderProps) {
   return (
-    <div className="w-full max-w-full space-y-4">
-      <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Transações</h1>
-      
+    <div className="w-full space-y-2">
+      <h1 className="text-lg font-bold text-foreground">Transações</h1>
       <TransactionFilters
-        dateRange={dateRange}
-        startDate={startDate}
-        endDate={endDate}
-        searchTerm={searchTerm}
-        onDateRangeChange={onDateRangeChange}
-        onStartDateChange={onStartDateChange}
-        onEndDateChange={onEndDateChange}
-        onSearchChange={onSearchChange}
-        onPrintExtract={onPrintExtract}
+        dateRange={dateRange} startDate={startDate} endDate={endDate}
+        searchTerm={searchTerm} onDateRangeChange={onDateRangeChange}
+        onStartDateChange={onStartDateChange} onEndDateChange={onEndDateChange}
+        onSearchChange={onSearchChange} onPrintExtract={onPrintExtract}
       />
     </div>
   );

@@ -1,31 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, 
-  CreditCard, 
-  Users, 
-  Settings, 
-  TrendingDown,
-  Receipt,
-  TrendingUp,
-  MoreHorizontal,
-  LogOut,
-  BarChart3
+  LayoutDashboard, CreditCard, Users, Settings, TrendingDown,
+  Receipt, MoreHorizontal, LogOut, BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNative } from "@/hooks/useNative";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 
 export const ProfessionalMobileNav = () => {
   const location = useLocation();
@@ -35,209 +19,95 @@ export const ProfessionalMobileNav = () => {
   const { toast } = useToast();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Core navigation - most used features
   const coreNavItems = [
-    { 
-      icon: LayoutDashboard, 
-      label: "Dashboard", 
-      href: "/dashboard",
-      gradient: "from-blue-500 to-indigo-600"
-    },
-    { 
-      icon: CreditCard, 
-      label: "Trading", 
-      href: "/transactions",
-      gradient: "from-emerald-500 to-teal-600"
-    },
-    { 
-      icon: Users, 
-      label: "Clientes", 
-      href: "/clients",
-      gradient: "from-amber-500 to-orange-600"
-    },
+    { icon: LayoutDashboard, label: "Home", href: "/dashboard" },
+    { icon: CreditCard, label: "Trading", href: "/transactions" },
+    { icon: Users, label: "Clientes", href: "/clients" },
   ];
 
-  // Secondary features
   const secondaryNavItems = [
     { icon: BarChart3, label: "Análise", href: "/analytics" },
     { icon: TrendingDown, label: "Despesas", href: "/expenses" },
     { icon: Receipt, label: "Faturadas", href: "/invoiced" },
-    { icon: Settings, label: "Configurações", href: "/settings" },
+    { icon: Settings, label: "Config.", href: "/settings" },
   ];
 
-  const handleNavClick = () => {
-    hapticFeedback('light');
-  };
+  const handleNavClick = () => hapticFeedback('light');
 
   const handleLogout = async () => {
     try {
       await signOut();
-      toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso.",
-      });
-      hapticFeedback('medium');
+      toast({ title: "Logout realizado" });
       setIsDrawerOpen(false);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao fazer logout.",
-        variant: "destructive",
-      });
+    } catch {
+      toast({ title: "Erro ao fazer logout", variant: "destructive" });
     }
   };
 
   if (!isMobile) return null;
 
   return (
-    <>
-      {/* Professional Bottom Navigation */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg ${
-        isNative ? 'pb-safe' : 'pb-4'
-      }`}>
-        {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-trading-gradient" />
+    <div className={`fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border ${isNative ? 'pb-safe' : 'pb-2'}`}>
+      <nav className="flex justify-around items-center py-1 px-2">
+        {coreNavItems.map((item) => {
+          const isActive = location.pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              onClick={handleNavClick}
+              className={cn(
+                "flex flex-col items-center justify-center p-1.5 rounded-xl min-w-[56px] transition-all",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
+              <span className="text-[10px] mt-0.5 font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
         
-        <nav className="flex justify-between items-center py-2 px-4">
-          {coreNavItems.map((item, index) => {
-            const isActive = location.pathname === item.href || 
-                            (item.href === "/chat" && location.pathname.startsWith("/chat"));
-            return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={handleNavClick}
-                className={cn(
-                  "flex flex-col items-center justify-center p-3 transition-all duration-300 rounded-2xl min-w-[70px] relative native-transition group",
-                  isActive 
-                    ? "bg-primary/10 text-primary scale-105 shadow-lg" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/10 active:scale-95"
-                )}
-              >
-                <div className={cn(
-                  "relative p-2 rounded-full transition-all duration-300",
-                  isActive ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg` : "group-hover:bg-accent/20"
-                )}>
-                  <item.icon className={cn(
-                    "h-5 w-5 transition-all duration-300", 
-                    isActive && "scale-110"
-                  )} />
-                </div>
-                
-                <span className={cn(
-                  "text-xs font-medium transition-all duration-300 mt-1",
-                  isActive ? "font-semibold text-primary" : "text-muted-foreground group-hover:text-foreground"
-                )}>
-                  {item.label}
-                </span>
-                
-                {/* Active indicator */}
-                {isActive && (
-                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-primary rounded-full animate-pulse" />
-                )}
-              </Link>
-            );
-          })}
-          
-          {/* More Menu */}
-          <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-            <DrawerTrigger asChild>
-              <button 
-                onClick={handleNavClick}
-                className="flex flex-col items-center justify-center p-3 transition-all duration-300 rounded-2xl min-w-[70px] text-muted-foreground hover:text-foreground hover:bg-accent/10 active:scale-95 native-transition relative group"
-              >
-                <div className="p-2 rounded-full transition-all duration-300 group-hover:bg-accent/20">
-                  <MoreHorizontal className="h-5 w-5" />
-                </div>
-                <span className="text-xs font-medium mt-1 group-hover:text-foreground">Mais</span>
-              </button>
-            </DrawerTrigger>
-            <DrawerContent className="bg-background/98 backdrop-blur-xl border-t border-border/50">
-              <DrawerHeader className="border-b border-border/20">
-                <DrawerTitle className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-trading-gradient flex items-center justify-center">
-                    <MoreHorizontal className="h-4 w-4 text-white" />
-                  </div>
-                  Menu Completo
-                </DrawerTitle>
-              </DrawerHeader>
-              
-              <div className="p-6 space-y-3 pb-8 max-h-80 overflow-y-auto scrollbar-trading">
-                {/* Quick Actions */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  <Button 
-                    variant="outline" 
-                    className="h-12 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-200 hover:from-emerald-500/20 hover:to-teal-500/20"
-                    onClick={() => setIsDrawerOpen(false)}
+        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+          <DrawerTrigger asChild>
+            <button onClick={handleNavClick}
+              className="flex flex-col items-center justify-center p-1.5 rounded-xl min-w-[56px] text-muted-foreground">
+              <MoreHorizontal className="h-5 w-5" />
+              <span className="text-[10px] mt-0.5 font-medium">Mais</span>
+            </button>
+          </DrawerTrigger>
+          <DrawerContent className="bg-background border-t border-border">
+            <DrawerHeader className="py-3">
+              <DrawerTitle className="text-sm">Menu</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-3 space-y-1 pb-6">
+              {secondaryNavItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={cn(
+                      "flex items-center gap-3 p-2.5 rounded-lg transition-all text-sm",
+                      isActive ? "bg-primary/10 text-primary" : "hover:bg-accent/10"
+                    )}
+                    onClick={() => { handleNavClick(); setIsDrawerOpen(false); }}
                   >
-                    <TrendingUp className="h-4 w-4 mr-2 text-emerald-600" />
-                    Nova Receita
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="h-12 bg-gradient-to-r from-red-500/10 to-pink-500/10 border-red-200 hover:from-red-500/20 hover:to-pink-500/20"
-                    onClick={() => setIsDrawerOpen(false)}
-                  >
-                    <TrendingDown className="h-4 w-4 mr-2 text-red-600" />
-                    Nova Despesa
-                  </Button>
-                </div>
-
-                {/* Secondary Navigation */}
-                {secondaryNavItems.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className={cn(
-                        "flex items-center gap-4 p-4 rounded-xl transition-all duration-200 active:scale-95 native-transition group",
-                        isActive 
-                          ? "bg-primary/10 text-primary border border-primary/20" 
-                          : "hover:bg-accent/10 border border-transparent"
-                      )}
-                      onClick={() => {
-                        handleNavClick();
-                        setIsDrawerOpen(false);
-                      }}
-                    >
-                      <div className={cn(
-                        "p-2 rounded-lg transition-all duration-300",
-                        isActive ? "bg-primary/20" : "bg-muted/50 group-hover:bg-accent/20"
-                      )}>
-                        <item.icon className={cn(
-                          "h-5 w-5",
-                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                        )} />
-                      </div>
-                      <span className={cn(
-                        "font-medium",
-                        isActive ? "text-primary" : "group-hover:text-foreground"
-                      )}>
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-                
-                {/* Logout */}
-                <div className="border-t pt-4 mt-6">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-4 p-4 rounded-xl transition-all duration-200 active:scale-95 native-transition text-destructive hover:bg-destructive/10 w-full border border-transparent hover:border-destructive/20"
-                  >
-                    <div className="p-2 rounded-lg bg-destructive/10">
-                      <LogOut className="h-5 w-5" />
-                    </div>
-                    <span className="font-medium">Sair da Conta</span>
-                  </button>
-                </div>
+                    <item.icon className="h-4 w-4" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+              <div className="border-t pt-2 mt-2">
+                <button onClick={handleLogout}
+                  className="flex items-center gap-3 p-2.5 rounded-lg text-destructive hover:bg-destructive/10 w-full text-sm">
+                  <LogOut className="h-4 w-4" />
+                  <span className="font-medium">Sair</span>
+                </button>
               </div>
-            </DrawerContent>
-          </Drawer>
-        </nav>
-      </div>
-    </>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </nav>
+    </div>
   );
 };
