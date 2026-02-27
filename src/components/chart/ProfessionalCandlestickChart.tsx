@@ -105,7 +105,7 @@ export const ProfessionalCandlestickChart = memo(function ProfessionalCandlestic
 
     // Transform data to chart format
     const chartData: CandlestickData[] = data.map(item => ({
-      time: item.date as Time,
+      time: (item.date.length > 10 ? item.date.slice(0, 10) : item.date) as Time,
       open: item.open,
       high: item.high,
       low: item.low,
