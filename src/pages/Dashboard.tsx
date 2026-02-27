@@ -29,7 +29,7 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="w-full space-y-3 max-w-7xl mx-auto">
+    <div className="w-full flex flex-col gap-2 max-w-7xl mx-auto h-full">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-foreground">Dashboard</h1>
         <div className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-full">

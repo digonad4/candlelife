@@ -21,7 +21,7 @@ const Transactions = () => {
   } = useTransactionsPage();
 
   return (
-    <div className="w-full space-y-3 max-w-7xl mx-auto">
+    <div className="w-full flex flex-col gap-2 max-w-7xl mx-auto h-full">
       <TransactionsHeader
         dateRange={dateRange} startDate={startDate} endDate={endDate}
         searchTerm={searchTerm} onDateRangeChange={setDateRange}

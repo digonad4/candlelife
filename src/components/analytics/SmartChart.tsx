@@ -1,13 +1,14 @@
 import { ProfessionalCandlestickChart } from "@/components/chart/ProfessionalCandlestickChart";
-import { useOHLCData } from "@/hooks/useOHLCData";
+import { useOHLCData, TimeRange } from "@/hooks/useOHLCData";
 
 interface SmartChartProps {
   startDate?: Date;
   endDate?: Date;
+  timeRange?: TimeRange;
 }
 
-export function SmartChart({ startDate, endDate }: SmartChartProps) {
-  const { data: candleData, isLoading } = useOHLCData(startDate, endDate, "daily");
+export function SmartChart({ startDate, endDate, timeRange = "individual" }: SmartChartProps) {
+  const { data: candleData, isLoading } = useOHLCData(startDate, endDate, timeRange);
 
   if (isLoading) {
     return (
