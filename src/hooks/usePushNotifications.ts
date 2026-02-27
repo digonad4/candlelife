@@ -41,7 +41,7 @@ export const usePushNotifications = () => {
       const vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI-11-bQGxLlq4pGqw_X_wJzs-XEA1j75pEO8tpIi-5IwRdZEZllr2lVSI'; // Replace with your actual key
 
       // Subscribe to push notifications
-      const pushSubscription = await registration.pushManager.subscribe({
+      const pushSubscription = await (registration as any).pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
