@@ -14,6 +14,7 @@ import { TransactionSelectionControls } from "./transactions/TransactionSelectio
 import { TransactionTableView } from "./transactions/TransactionTableView";
 import { useViewMode } from "@/hooks/useViewMode";
 import { ExpenseModal } from "./ExpenseModal";
+import { PullToRefresh } from "./ui/pull-to-refresh";
 
 interface RecentTransactionsProps {
   startDate?: Date;
@@ -141,23 +142,25 @@ const RecentTransactions = ({ startDate, endDate }: RecentTransactionsProps) => 
           onConfirmSelected={() => handleOpenConfirmDialog()}
         />
 
-        {viewMode === "list" ? (
-          <TransactionList
-            transactions={filteredTransactions} isLoading={isLoading}
-            selectedTransactions={selectedTransactions}
-            onSelectTransaction={handleSelectTransaction}
-            onOpenConfirmDialog={handleOpenConfirmDialog}
-            onEdit={handleEditTransaction}
-          />
-        ) : (
-          <TransactionTableView
-            transactions={filteredTransactions} isLoading={isLoading}
-            selectedTransactions={selectedTransactions}
-            onSelectTransaction={handleSelectTransaction}
-            onOpenConfirmDialog={handleOpenConfirmDialog}
-            onEdit={handleEditTransaction}
-          />
-        )}
+        <PullToRefresh onRefresh={async () => { queryClient.invalidateQueries({ queryKey: ["recent-transactions"] }); await new Promise(r => setTimeout(r, 500)); }}>
+          {viewMode === "list" ? (
+            <TransactionList
+              transactions={filteredTransactions} isLoading={isLoading}
+              selectedTransactions={selectedTransactions}
+              onSelectTransaction={handleSelectTransaction}
+              onOpenConfirmDialog={handleOpenConfirmDialog}
+              onEdit={handleEditTransaction}
+            />
+          ) : (
+            <TransactionTableView
+              transactions={filteredTransactions} isLoading={isLoading}
+              selectedTransactions={selectedTransactions}
+              onSelectTransaction={handleSelectTransaction}
+              onOpenConfirmDialog={handleOpenConfirmDialog}
+              onEdit={handleEditTransaction}
+            />
+          )}
+        </PullToRefresh>
 
         <FinancialSummary transactions={filteredTransactions} />
       </CardContent>

@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownIcon, CheckCircle2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 
 const ExpensesManagement = () => {
   const { user } = useAuth();
@@ -61,7 +62,7 @@ const ExpensesManagement = () => {
   const formattedTotal = totalAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
-    <div className="w-full space-y-3 max-w-7xl mx-auto">
+    <div className="w-full flex flex-col gap-2 max-w-7xl mx-auto h-full">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-foreground">Despesas</h1>
         {selectedTransactions.length > 0 && (
@@ -91,8 +92,9 @@ const ExpensesManagement = () => {
         />
       </div>
 
-      <Card className="rounded-lg border-border bg-card">
-        <CardContent className="p-3">
+      <Card className="rounded-lg border-border bg-card flex-1 min-h-0">
+        <CardContent className="p-3 h-full">
+          <PullToRefresh onRefresh={async () => { await new Promise(r => setTimeout(r, 500)); }} className="h-full overflow-auto">
           <div className="space-y-1.5">
             {isLoading ? (
               <p className="text-muted-foreground text-xs py-4 text-center">Carregando...</p>
@@ -142,6 +144,7 @@ const ExpensesManagement = () => {
               </div>
             )}
           </div>
+          </PullToRefresh>
         </CardContent>
       </Card>
 

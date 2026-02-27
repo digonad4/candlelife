@@ -29,11 +29,11 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
         
         <SidebarInset className="flex-1 flex flex-col min-h-[100dvh]">
           <main className={cn(
-            "flex-1 overflow-auto bg-background",
-            isMobile ? "pb-20 px-2 pt-2" : "p-4"
+            "flex-1 overflow-auto bg-background flex flex-col",
+            isMobile ? "pb-16 px-2 pt-2" : "p-4"
           )}>
             <div className={cn(
-              "h-full w-full",
+              "flex-1 w-full flex flex-col min-h-0",
               !isMobile && "max-w-7xl mx-auto"
             )}>
               {children || <Outlet />}

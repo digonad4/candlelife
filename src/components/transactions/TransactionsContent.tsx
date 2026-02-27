@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DailyTransactionsList } from "@/components/transactions/DailyTransactionsList";
 import { TransactionActionBar } from "@/components/transactions/TransactionActionBar";
 import { Transaction } from "@/types/transaction";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 
 interface TransactionsContentProps {
   days: [string, Transaction[]][];
@@ -17,16 +18,20 @@ interface TransactionsContentProps {
   onConfirmPayment: (transaction: Transaction) => void;
   onConfirmSelected: () => void;
   onDeleteSelected: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
 export function TransactionsContent({
   days, isLoading, selectedTransactions, searchTerm,
   onToggleSelection, onSelectAll, onDeselectAll,
-  onEdit, onDelete, onConfirmPayment, onConfirmSelected, onDeleteSelected
+  onEdit, onDelete, onConfirmPayment, onConfirmSelected, onDeleteSelected,
+  onRefresh
 }: TransactionsContentProps) {
+  const defaultRefresh = async () => { await new Promise(r => setTimeout(r, 500)); };
+
   return (
-    <Card className="rounded-lg border-border bg-card overflow-hidden">
-      <CardContent className="p-3">
+    <Card className="rounded-lg border-border bg-card overflow-hidden flex-1 min-h-0">
+      <CardContent className="p-3 h-full flex flex-col">
         <h3 className="text-sm font-semibold mb-2">
           {searchTerm ? "Resultados" : "Histórico"}
         </h3>
@@ -36,17 +41,19 @@ export function TransactionsContent({
           onConfirmSelected={onConfirmSelected} onDeleteSelected={onDeleteSelected}
         />
         
-        {isLoading ? (
-          <p className="text-center text-muted-foreground py-4 text-xs">Carregando...</p>
-        ) : days.length === 0 ? (
-          <p className="text-center text-muted-foreground py-4 text-xs">Nenhuma transação encontrada.</p>
-        ) : (
-          <DailyTransactionsList
-            days={days} selectedTransactions={selectedTransactions}
-            isLoading={isLoading} onSelectTransaction={onToggleSelection}
-            onEdit={onEdit} onDelete={onDelete} onConfirmPayment={onConfirmPayment}
-          />
-        )}
+        <PullToRefresh onRefresh={onRefresh || defaultRefresh} className="flex-1 min-h-0">
+          {isLoading ? (
+            <p className="text-center text-muted-foreground py-4 text-xs">Carregando...</p>
+          ) : days.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4 text-xs">Nenhuma transação encontrada.</p>
+          ) : (
+            <DailyTransactionsList
+              days={days} selectedTransactions={selectedTransactions}
+              isLoading={isLoading} onSelectTransaction={onToggleSelection}
+              onEdit={onEdit} onDelete={onDelete} onConfirmPayment={onConfirmPayment}
+            />
+          )}
+        </PullToRefresh>
       </CardContent>
     </Card>
   );
