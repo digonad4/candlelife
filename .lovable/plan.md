@@ -1,75 +1,110 @@
+# Plano: Transformação em App Mobile Nativo (Android + iOS)
 
-# Plano: Pull-to-Refresh, Gráfico por Transação e Layout Sem Espaços Vazios
+## Objetivo
+Manter 100% das funcionalidades atuais (transações, clientes, despesas, faturadas, analytics com candles, notificações, auth, 2FA, temas) e transformar a experiência visual e de navegação em um app **mobile-first nativo**, otimizado para Capacitor (Android/iOS), pronto para compilação.
 
-## 1. Corrigir Gráfico - Seletor de Período
+---
 
-**Problema**: O `SmartChart` chama `useOHLCData` com `"daily"` fixo, o que agrega todas as transações do dia em uma única vela.
+## 1. Redesign Mobile-First (UI/UX nativa)
 
-**Solução**: 
-- Atualizar `SmartChart` para aceitar um prop `timeRange` e passar para `useOHLCData`
-- Atualizar `Analytics.tsx` para incluir um seletor de período (Transação, Diário, Semanal, Mensal) usando botões compactos
-- Valor padrão: `"individual"` (cada transação = uma vela)
+### 1.1 Shell do App
+- Substituir `MobileOptimizedLayout` por um shell **100% mobile** (sem sidebar desktop como base — sidebar vira apenas fallback para tablet/desktop opcional).
+- Header nativo fixo com `safe-area-top`, título da rota atual e ações contextuais (busca/filtro/+).
+- Bottom tab bar nativa (já existe `ProfessionalMobileNav`) — refinar com:
+  - Ícones maiores (24px), labels 11px, indicador de aba ativa (pill animada).
+  - Botão central FAB destacado para "+ Nova Transação" (ação primária).
+  - Haptic feedback em cada toque (já existe `useNative`).
+  - Respeito total a `safe-area-bottom` (gesture bar iOS / nav Android).
 
-**Arquivos**: `src/components/analytics/SmartChart.tsx`, `src/pages/Analytics.tsx`
+### 1.2 Padrões nativos por página
+- **Dashboard**: cards roláveis horizontais (carousel) para resumo, lista vertical de transações recentes, pull-to-refresh.
+- **Transações**: lista virtualizada full-screen, swipe-actions (editar/excluir/confirmar), filtros em bottom-sheet (Drawer), busca em header colapsável.
+- **Analytics**: gráfico de candles ocupando viewport completo, seletor de período em chips horizontais (diário/semanal/mensal/transação), gestos de pinça/pan.
+- **Clientes**: lista com avatar + nome + saldo, swipe para ações, detalhe em tela cheia com transações do cliente.
+- **Despesas / Faturadas**: mesma linguagem (lista + swipe + bottom-sheet de filtros).
+- **Settings**: agrupamento estilo iOS (seções com cards arredondados, chevrons à direita).
 
-## 2. Pull-to-Refresh nas Listas
+### 1.3 Tokens visuais (mantém tema Supabase dark)
+- Reforçar `bg #000000`, accent `#3FCF8E`, cards `#0A0A0A` com border `#1F1F1F`.
+- Raios `rounded-2xl` em cards, `rounded-full` em botões primários.
+- Tipografia: SF Pro / Inter — tamanhos mobile (title 20, body 14, caption 11).
+- Animações com `framer-motion`: fade+slide entre rotas, spring em bottom-sheets.
+- Estados de loading com skeletons no formato dos cards reais.
 
-**Solução**: Criar um componente `PullToRefresh` reutilizável que:
-- Detecta gesto de swipe para baixo no topo da lista
-- Mostra indicador de loading (spinner)
-- Chama callback de refresh e invalida queries
+### 1.4 Componentes nativos a criar/refinar
+- `NativeHeader` (substitui headers atuais de página).
+- `NativeBottomSheet` (wrapper sobre Drawer p/ filtros e ações).
+- `SwipeableListItem` (swipe-actions reutilizável).
+- `NativePageTransition` (transição entre rotas).
+- `FAB` (Floating Action Button central da tab bar).
 
-**Arquivos afetados**:
-- Novo: `src/components/ui/pull-to-refresh.tsx`
-- `src/components/transactions/TransactionsContent.tsx` - envolver lista com PullToRefresh
-- `src/pages/InvoicedTransactions.tsx` - envolver lista com PullToRefresh
-- `src/components/ExpensesManagement.tsx` - envolver lista com PullToRefresh
-- `src/components/RecentTransactions.tsx` - envolver lista com PullToRefresh
+---
 
-## 3. Eliminar Espaços Vazios (Mobile Full-Screen)
+## 2. Ajustes Capacitor (compilação Android + iOS)
 
-**Mudanças**:
-- `Analytics.tsx`: O gráfico deve ocupar mais espaço vertical (`h-[calc(100dvh-280px)]` no mobile), remover card de resumo redundante (stats já mostram os dados)
-- `Dashboard.tsx`: Reduzir `space-y-3` para `space-y-2`, lista de transações preencher o espaço restante
-- `Transactions.tsx`: Reduzir `space-y-3` para `space-y-2`
-- `InvoicedTransactions.tsx` e `ExpensesManagement.tsx`: Mesma redução de espaçamento
-- `MobileOptimizedLayout.tsx`: Reduzir padding inferior para `pb-16` (nav menor)
+### 2.1 `capacitor.config.ts`
+- Remover `server.url` de hot-reload (modo produção empacotado).
+- Confirmar `appId: com.candlelife.app`, `appName: candle-life`, `webDir: dist`.
+- `StatusBar`: style `Dark`, background `#000000`, overlay `false`.
+- `Keyboard`: `resize: 'native'`, `style: 'dark'`.
+- `SplashScreen`: 1500ms, background `#000000`, sem spinner.
+- `App`: `backButtonExitsApp: false` (controla via router).
 
-## Detalhes Tecnicos
+### 2.2 Plugins (já instalados — apenas configurar)
+StatusBar, Keyboard, Haptics, SplashScreen, PushNotifications, LocalNotifications, Network, Share, Toast, Device, Camera.
 
-### PullToRefresh Component
-```text
-+---------------------------+
-|   [arrastar para baixo]   |
-|        spinner icon       |
-+---------------------------+
-|                           |
-|    Lista de transações    |
-|                           |
-+---------------------------+
-```
-- Usa `touchstart`, `touchmove`, `touchend` events
-- Threshold de 60px para ativar o refresh
-- Só ativa quando scroll está no topo (scrollTop === 0)
-- Mostra spinner durante a operação
+### 2.3 Android
+- `AndroidManifest.xml`: adicionar permissões faltantes (POST_NOTIFICATIONS, VIBRATE, CAMERA, INTERNET ✓).
+- `styles.xml`: tema dark edge-to-edge, status bar transparente.
+- `colors.xml`: cores do brand.
 
-### Seletor de Período no Gráfico
-```text
-[Transação] [Diário] [Semanal] [Mensal]
-```
-- Botões compactos (pills) abaixo do header da página
-- "Transação" = `individual` (padrão) - cada transação é uma vela
-- Cores: verde para lucro, vermelho para despesa
+### 2.4 iOS
+- `Info.plist`: `UIStatusBarStyle = UIStatusBarStyleLightContent`, `UIViewControllerBasedStatusBarAppearance = false`, descrições de uso (camera, notifications), `UIBackgroundModes` para push.
+- `LaunchScreen.storyboard`: fundo preto + logo centralizado.
 
-### Ordem de Implementação
+### 2.5 Build & Sync
+- Garantir `npm run build` + `npx cap sync` limpos.
+- Documentar no README os passos: export GitHub → `npm i` → `npx cap add ios/android` → `npx cap sync` → `npx cap run ios|android`.
 
-| Etapa | Arquivo | Mudança |
-|-------|---------|---------|
-| 1 | `src/components/ui/pull-to-refresh.tsx` | Criar componente |
-| 2 | `src/components/analytics/SmartChart.tsx` | Adicionar prop timeRange |
-| 3 | `src/pages/Analytics.tsx` | Seletor de período + layout full-screen |
-| 4 | `src/components/transactions/TransactionsContent.tsx` | Pull-to-refresh |
-| 5 | `src/pages/InvoicedTransactions.tsx` | Pull-to-refresh + layout compacto |
-| 6 | `src/components/ExpensesManagement.tsx` | Pull-to-refresh + layout compacto |
-| 7 | `src/pages/Dashboard.tsx` | Layout sem espaços |
-| 8 | `src/components/layout/MobileOptimizedLayout.tsx` | Reduzir padding |
+---
+
+## 3. Safe-Areas e gestos
+- CSS global: variáveis `--sat`, `--sab`, `--sal`, `--sar` via `env(safe-area-inset-*)`.
+- Aplicar em header (top) e tab bar (bottom).
+- Desabilitar zoom de pinça em inputs (viewport meta já correto).
+- Desabilitar text-selection acidental em UI chrome (manter em conteúdo).
+
+---
+
+## 4. Funcionalidades preservadas (regressão zero)
+Auth + 2FA, transações (CRUD + confirmar pagamento + swipe), clientes + dívidas, despesas, faturadas, analytics OHLC com 4 períodos, notificações push/local, temas, perfil, sessões. Todos os hooks (`useTransactionsPage`, `useOHLCData`, `useClientDebts`, etc.) permanecem intactos — só a camada de apresentação muda.
+
+---
+
+## 5. Arquivos afetados (resumo)
+
+| # | Arquivo | Mudança |
+|---|---|---|
+| 1 | `capacitor.config.ts` | Config produção + plugins |
+| 2 | `src/components/layout/MobileOptimizedLayout.tsx` | Shell mobile-first |
+| 3 | `src/components/layout/ProfessionalMobileNav.tsx` | Tab bar + FAB |
+| 4 | `src/components/layout/NativeHeader.tsx` | **novo** |
+| 5 | `src/components/ui/native-bottom-sheet.tsx` | **novo** |
+| 6 | `src/components/ui/swipeable-list-item.tsx` | **novo** |
+| 7 | `src/components/ui/fab.tsx` | **novo** |
+| 8 | `src/index.css` | Safe-areas + tokens nativos |
+| 9 | `src/pages/Dashboard.tsx` | Layout mobile redesenhado |
+| 10 | `src/pages/Transactions.tsx` + `TransactionsContent.tsx` | Lista nativa + swipe + bottom-sheet filtros |
+| 11 | `src/pages/Analytics.tsx` | Chart full-screen + chips de período |
+| 12 | `src/pages/Clients.tsx` + `ClientsList.tsx` | Lista + swipe |
+| 13 | `src/pages/Expenses.tsx` + `ExpensesManagement.tsx` | Mesma linguagem |
+| 14 | `src/pages/InvoicedTransactions.tsx` | Mesma linguagem |
+| 15 | `src/pages/Settings.tsx` | Agrupamento iOS-like |
+| 16 | `android/app/src/main/AndroidManifest.xml` | Permissões |
+| 17 | `android/app/src/main/res/values/styles.xml` | Tema dark edge-to-edge |
+| 18 | `ios/App/App/Info.plist` | Status bar + permissões |
+
+---
+
+## Pergunta antes de implementar
+Manter sidebar como opção em tablet/desktop, ou remover totalmente e deixar **só tab bar mobile** em qualquer viewport (app puro, sem layout web)?
