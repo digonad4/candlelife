@@ -393,3 +393,50 @@
     @apply gap-4 md:gap-6;
   }
 }
+
+/* ============================================ */
+/* NATIVE MOBILE — Safe areas & native feel    */
+/* ============================================ */
+@layer base {
+  html, body, #root {
+    height: 100%;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection in content containers */
+  input, textarea, [contenteditable], .selectable {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    /* Disable bounce scrolling on iOS, keep momentum inside scroll containers */
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  #root {
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  .safe-top    { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-left   { padding-left: env(safe-area-inset-left); }
+  .safe-right  { padding-right: env(safe-area-inset-right); }
+  .h-safe-top    { height: env(safe-area-inset-top); }
+  .h-safe-bottom { height: env(safe-area-inset-bottom); }
+
+  /* Native momentum scrolling */
+  .native-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
