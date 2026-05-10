@@ -1,110 +1,84 @@
-# Plano: Transformação em App Mobile Nativo (Android + iOS)
 
-## Objetivo
-Manter 100% das funcionalidades atuais (transações, clientes, despesas, faturadas, analytics com candles, notificações, auth, 2FA, temas) e transformar a experiência visual e de navegação em um app **mobile-first nativo**, otimizado para Capacitor (Android/iOS), pronto para compilação.
+## Problemas identificados
 
----
+Após inspecionar `MobileOptimizedLayout`, `index.css`, `NativeHeader` e as páginas (`Dashboard`, `Transactions`, `Analytics`, `Clients`, `InvoicedTransactions`):
 
-## 1. Redesign Mobile-First (UI/UX nativa)
-
-### 1.1 Shell do App
-- Substituir `MobileOptimizedLayout` por um shell **100% mobile** (sem sidebar desktop como base — sidebar vira apenas fallback para tablet/desktop opcional).
-- Header nativo fixo com `safe-area-top`, título da rota atual e ações contextuais (busca/filtro/+).
-- Bottom tab bar nativa (já existe `ProfessionalMobileNav`) — refinar com:
-  - Ícones maiores (24px), labels 11px, indicador de aba ativa (pill animada).
-  - Botão central FAB destacado para "+ Nova Transação" (ação primária).
-  - Haptic feedback em cada toque (já existe `useNative`).
-  - Respeito total a `safe-area-bottom` (gesture bar iOS / nav Android).
-
-### 1.2 Padrões nativos por página
-- **Dashboard**: cards roláveis horizontais (carousel) para resumo, lista vertical de transações recentes, pull-to-refresh.
-- **Transações**: lista virtualizada full-screen, swipe-actions (editar/excluir/confirmar), filtros em bottom-sheet (Drawer), busca em header colapsável.
-- **Analytics**: gráfico de candles ocupando viewport completo, seletor de período em chips horizontais (diário/semanal/mensal/transação), gestos de pinça/pan.
-- **Clientes**: lista com avatar + nome + saldo, swipe para ações, detalhe em tela cheia com transações do cliente.
-- **Despesas / Faturadas**: mesma linguagem (lista + swipe + bottom-sheet de filtros).
-- **Settings**: agrupamento estilo iOS (seções com cards arredondados, chevrons à direita).
-
-### 1.3 Tokens visuais (mantém tema Supabase dark)
-- Reforçar `bg #000000`, accent `#3FCF8E`, cards `#0A0A0A` com border `#1F1F1F`.
-- Raios `rounded-2xl` em cards, `rounded-full` em botões primários.
-- Tipografia: SF Pro / Inter — tamanhos mobile (title 20, body 14, caption 11).
-- Animações com `framer-motion`: fade+slide entre rotas, spring em bottom-sheets.
-- Estados de loading com skeletons no formato dos cards reais.
-
-### 1.4 Componentes nativos a criar/refinar
-- `NativeHeader` (substitui headers atuais de página).
-- `NativeBottomSheet` (wrapper sobre Drawer p/ filtros e ações).
-- `SwipeableListItem` (swipe-actions reutilizável).
-- `NativePageTransition` (transição entre rotas).
-- `FAB` (Floating Action Button central da tab bar).
+1. **Largura**: As páginas usam `max-w-7xl mx-auto` mas dentro de um `<main>` com `px-3` que não está expandindo corretamente em todas as rotas. Algumas páginas têm wrappers extras (`Card`, divs internas) que limitam a largura.
+2. **Scroll quebrado**: Em `index.css` há `body { position: fixed; inset: 0; overflow: hidden }` e `#root { overflow: hidden }`. Isso bloqueia a rolagem nativa no navegador móvel — o `<main>` tem `overflow-y-auto`, mas o conteúdo não rola por causa do bloqueio global e da combinação com `overscroll-behavior-y: none` + `user-select: none` no body.
+3. **Títulos duplicados**: O `NativeHeader` já renderiza o título da rota ("Dashboard", "Trading", "Análise", "Clientes", "Faturadas"), mas cada página também renderiza o próprio `<h1>` interno → título aparece duas vezes.
+4. **Google Auth**: Não existe nenhum botão OAuth no `LoginForm` / `SignUpForm`.
+5. **Capacitor**: Está em `^7.4.4` (todos os pacotes `@capacitor/*`). Bumpar para a última versão estável.
 
 ---
 
-## 2. Ajustes Capacitor (compilação Android + iOS)
+## Plano de execução
 
-### 2.1 `capacitor.config.ts`
-- Remover `server.url` de hot-reload (modo produção empacotado).
-- Confirmar `appId: com.candlelife.app`, `appName: candle-life`, `webDir: dist`.
-- `StatusBar`: style `Dark`, background `#000000`, overlay `false`.
-- `Keyboard`: `resize: 'native'`, `style: 'dark'`.
-- `SplashScreen`: 1500ms, background `#000000`, sem spinner.
-- `App`: `backButtonExitsApp: false` (controla via router).
+### 1. Corrigir scroll e largura (CSS global + layout)
 
-### 2.2 Plugins (já instalados — apenas configurar)
-StatusBar, Keyboard, Haptics, SplashScreen, PushNotifications, LocalNotifications, Network, Share, Toast, Device, Camera.
+**`src/index.css`**
+- Remover `body { position: fixed; inset: 0; overflow: hidden }` e `#root { overflow: hidden }` — esses bloqueios estão impedindo o scroll natural no navegador móvel.
+- Substituir por: `html, body, #root { height: 100%; width: 100%; }` e manter apenas `overscroll-behavior-y: none` no body para evitar pull-to-refresh do browser.
+- Manter `user-select: none` apenas em elementos UI (botões/nav), não no body inteiro.
 
-### 2.3 Android
-- `AndroidManifest.xml`: adicionar permissões faltantes (POST_NOTIFICATIONS, VIBRATE, CAMERA, INTERNET ✓).
-- `styles.xml`: tema dark edge-to-edge, status bar transparente.
-- `colors.xml`: cores do brand.
+**`src/components/layout/MobileOptimizedLayout.tsx`**
+- Garantir `<main>` com `w-full`, `min-h-0` correto e `flex-1`.
+- Reduzir `px-3` para `px-0` no main e deixar cada página controlar seu próprio padding (`px-3`/`px-4`), evitando duplicação.
+- Wrapper interno passa de `max-w-7xl` para `w-full` em mobile (o `max-w-7xl` continua válido só em desktop).
 
-### 2.4 iOS
-- `Info.plist`: `UIStatusBarStyle = UIStatusBarStyleLightContent`, `UIViewControllerBasedStatusBarAppearance = false`, descrições de uso (camera, notifications), `UIBackgroundModes` para push.
-- `LaunchScreen.storyboard`: fundo preto + logo centralizado.
+### 2. Remover títulos duplicados
 
-### 2.5 Build & Sync
-- Garantir `npm run build` + `npx cap sync` limpos.
-- Documentar no README os passos: export GitHub → `npm i` → `npx cap add ios/android` → `npx cap sync` → `npx cap run ios|android`.
+Remover o `<h1>` interno (e o "header" próprio das páginas) quando `useIsMobile()` for `true`, já que o `NativeHeader` já mostra o título:
+- `src/pages/Dashboard.tsx` — já está condicional, OK.
+- `src/pages/Transactions.tsx` → ajustar `TransactionsHeader` para esconder o `<h1>` em mobile.
+- `src/pages/Analytics.tsx` → esconder o `<h1>` "Análise" em mobile (mantém apenas seletor de mês).
+- `src/pages/Clients.tsx` → esconder `<h1>` "Clientes" em mobile, manter o botão "Novo" (eventualmente como `rightAction` do `NativeHeader`).
+- `src/pages/Expenses.tsx`, `InvoicedTransactions.tsx`, `Settings.tsx` → mesma lógica.
 
----
+Opcional: passar `rightAction` ao `NativeHeader` via Context ou prop drilling para acomodar botões como "Novo cliente".
 
-## 3. Safe-Areas e gestos
-- CSS global: variáveis `--sat`, `--sab`, `--sal`, `--sar` via `env(safe-area-inset-*)`.
-- Aplicar em header (top) e tab bar (bottom).
-- Desabilitar zoom de pinça em inputs (viewport meta já correto).
-- Desabilitar text-selection acidental em UI chrome (manter em conteúdo).
+### 3. Garantir conteúdo full-width
 
----
+Revisar cada página para que o container raiz seja `w-full flex flex-col` sem `max-w-*` em mobile. Cards internos (`<Card>`) devem usar `w-full`. Confirmar que `TransactionsContent`, `ClientsList`, `ClientDebtsList`, `RecentTransactions` não tenham `max-w` próprio que limite a tela.
 
-## 4. Funcionalidades preservadas (regressão zero)
-Auth + 2FA, transações (CRUD + confirmar pagamento + swipe), clientes + dívidas, despesas, faturadas, analytics OHLC com 4 períodos, notificações push/local, temas, perfil, sessões. Todos os hooks (`useTransactionsPage`, `useOHLCData`, `useClientDebts`, etc.) permanecem intactos — só a camada de apresentação muda.
+### 4. Adicionar Google Auth
 
----
+**Pré-requisito de configuração** (instruir usuário): habilitar Google Provider no Supabase Dashboard com Client ID/Secret do Google Cloud, e configurar Site URL + Redirect URL.
 
-## 5. Arquivos afetados (resumo)
+**Código:**
+- Criar componente `GoogleSignInButton` em `src/components/auth/GoogleSignInButton.tsx` que chama:
+  ```ts
+  supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${window.location.origin}/` }
+  })
+  ```
+- Inserir o botão no topo de `LoginForm.tsx` e `SignUpForm.tsx` com separador "ou".
+- Para o app nativo (Capacitor), o OAuth abrirá o navegador padrão do dispositivo; sem deep-link adicional já que o redirect cai no domínio Lovable e o session sync ocorre via `onAuthStateChange`. (Observação: deep-link nativo completo exigiria plugin `@capacitor/browser` + custom URL scheme — pode ser uma melhoria futura.)
 
-| # | Arquivo | Mudança |
-|---|---|---|
-| 1 | `capacitor.config.ts` | Config produção + plugins |
-| 2 | `src/components/layout/MobileOptimizedLayout.tsx` | Shell mobile-first |
-| 3 | `src/components/layout/ProfessionalMobileNav.tsx` | Tab bar + FAB |
-| 4 | `src/components/layout/NativeHeader.tsx` | **novo** |
-| 5 | `src/components/ui/native-bottom-sheet.tsx` | **novo** |
-| 6 | `src/components/ui/swipeable-list-item.tsx` | **novo** |
-| 7 | `src/components/ui/fab.tsx` | **novo** |
-| 8 | `src/index.css` | Safe-areas + tokens nativos |
-| 9 | `src/pages/Dashboard.tsx` | Layout mobile redesenhado |
-| 10 | `src/pages/Transactions.tsx` + `TransactionsContent.tsx` | Lista nativa + swipe + bottom-sheet filtros |
-| 11 | `src/pages/Analytics.tsx` | Chart full-screen + chips de período |
-| 12 | `src/pages/Clients.tsx` + `ClientsList.tsx` | Lista + swipe |
-| 13 | `src/pages/Expenses.tsx` + `ExpensesManagement.tsx` | Mesma linguagem |
-| 14 | `src/pages/InvoicedTransactions.tsx` | Mesma linguagem |
-| 15 | `src/pages/Settings.tsx` | Agrupamento iOS-like |
-| 16 | `android/app/src/main/AndroidManifest.xml` | Permissões |
-| 17 | `android/app/src/main/res/values/styles.xml` | Tema dark edge-to-edge |
-| 18 | `ios/App/App/Info.plist` | Status bar + permissões |
+### 5. Atualizar Capacitor
+
+Atualizar para a última versão (atualmente 7.4.4 → checar latest, geralmente 7.x mais recente):
+```
+bun add @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest @capacitor/ios@latest \
+  @capacitor/camera@latest @capacitor/device@latest @capacitor/haptics@latest \
+  @capacitor/keyboard@latest @capacitor/local-notifications@latest @capacitor/network@latest \
+  @capacitor/push-notifications@latest @capacitor/share@latest @capacitor/status-bar@latest \
+  @capacitor/toast@latest
+```
+Após o usuário fazer git pull localmente, ele deve rodar `npm install && npx cap sync` para sincronizar com Android/iOS.
 
 ---
 
-## Pergunta antes de implementar
-Manter sidebar como opção em tablet/desktop, ou remover totalmente e deixar **só tab bar mobile** em qualquer viewport (app puro, sem layout web)?
+## Detalhes técnicos
+
+**Arquivos a modificar:**
+- `src/index.css` (remover position:fixed do body)
+- `src/components/layout/MobileOptimizedLayout.tsx` (padding/width)
+- `src/components/layout/NativeHeader.tsx` (suporte opcional a `rightAction` via context)
+- `src/pages/Dashboard.tsx`, `Transactions.tsx`, `Analytics.tsx`, `Clients.tsx`, `Expenses.tsx`, `InvoicedTransactions.tsx`, `Settings.tsx` (esconder h1 em mobile)
+- `src/components/transactions/TransactionsHeader.tsx` (mesma)
+- `src/components/auth/LoginForm.tsx`, `SignUpForm.tsx` (botão Google)
+- `src/components/auth/GoogleSignInButton.tsx` (novo)
+- `package.json` (bump Capacitor)
+
+**Funcionalidade preservada:** apenas camada de apresentação + auth (OAuth additivo). Nenhum hook ou lógica de transações/charts é tocado.
