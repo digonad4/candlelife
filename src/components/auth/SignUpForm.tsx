@@ -185,6 +185,7 @@ const SignUpForm = ({ toggleView }: SignUpFormProps) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <GoogleSignInButton />
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
