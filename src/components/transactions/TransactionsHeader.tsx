@@ -20,7 +20,7 @@ export function TransactionsHeader({
 }: TransactionsHeaderProps) {
   return (
     <div className="w-full space-y-2">
-      <h1 className="text-lg font-bold text-foreground">Transações</h1>
+      <h1 className="hidden md:block text-lg font-bold text-foreground">Transações</h1>
       <TransactionFilters
         dateRange={dateRange} startDate={startDate} endDate={endDate}
         searchTerm={searchTerm} onDateRangeChange={onDateRangeChange}
