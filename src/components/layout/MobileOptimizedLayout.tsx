@@ -43,13 +43,13 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
         <NativeHeader title={title} />
         <main
           className={cn(
-            "flex-1 overflow-y-auto overflow-x-hidden",
+            "flex-1 w-full overflow-y-auto overflow-x-hidden native-scroll",
             "pt-[calc(3.25rem+env(safe-area-inset-top))]",
             "pb-[calc(4.5rem+env(safe-area-inset-bottom))]",
             "px-3"
           )}
         >
-          <div className="w-full flex flex-col min-h-full py-2">
+          <div className="w-full flex flex-col py-2">
             {children || <Outlet />}
           </div>
         </main>
