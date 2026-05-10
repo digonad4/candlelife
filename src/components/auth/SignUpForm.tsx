@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
 interface SignUpFormProps {
   toggleView: () => void;
