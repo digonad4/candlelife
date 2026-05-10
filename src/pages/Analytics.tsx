@@ -61,8 +61,8 @@ export default function Analytics() {
     <div className="w-full flex flex-col gap-1.5 max-w-7xl mx-auto h-full">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-foreground">Análise</h1>
-        <div className="flex items-center gap-1">
+        <h1 className="hidden md:block text-lg font-bold text-foreground">Análise</h1>
+        <div className="flex items-center gap-1 md:ml-auto">
           <Button variant="ghost" size="sm" onClick={() => setSelectedMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))} className="text-xs h-7 px-2">←</Button>
           <span className="text-xs font-medium">{format(selectedMonth, "MMM/yy", { locale: ptBR })}</span>
           <Button variant="ghost" size="sm" onClick={() => setSelectedMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))} className="text-xs h-7 px-2">→</Button>

@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
 interface LoginFormProps {
   toggleView: () => void;
@@ -77,6 +78,7 @@ const LoginForm = ({ toggleView }: LoginFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      <GoogleSignInButton />
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium">Email</Label>
         <Input

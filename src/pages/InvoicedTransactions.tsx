@@ -65,7 +65,7 @@ const InvoicedTransactions = () => {
   return (
     <div className="w-full flex flex-col gap-2 max-w-7xl mx-auto h-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-foreground">Faturadas</h1>
+        <h1 className="hidden md:block text-lg font-bold text-foreground">Faturadas</h1>
         {selectedTransactions.length > 0 && (
           <Button size="sm" onClick={() => setIsConfirmDialogOpen(true)} className="bg-green-600 hover:bg-green-700 text-xs h-7">
             Confirmar ({selectedTransactions.length})

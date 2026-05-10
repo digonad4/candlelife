@@ -400,29 +400,13 @@
 @layer base {
   html, body, #root {
     height: 100%;
-    overscroll-behavior-y: none;
+    width: 100%;
     -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  /* Allow text selection in content containers */
-  input, textarea, [contenteditable], .selectable {
-    -webkit-user-select: text;
-    user-select: text;
   }
 
   body {
     background-color: hsl(var(--background));
-    /* Disable bounce scrolling on iOS, keep momentum inside scroll containers */
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-  }
-
-  #root {
-    overflow: hidden;
+    overscroll-behavior-y: none;
   }
 }
 

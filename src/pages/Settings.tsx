@@ -32,7 +32,7 @@ const Settings = () => {
 
   return (
     <div className="w-full space-y-3 max-w-7xl mx-auto">
-      <h1 className="text-lg font-bold text-foreground">Configurações</h1>
+      <h1 className="hidden md:block text-lg font-bold text-foreground">Configurações</h1>
 
       <div className="flex gap-1 overflow-x-auto pb-1">
         {tabs.map((tab) => (
