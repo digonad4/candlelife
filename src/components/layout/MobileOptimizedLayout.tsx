@@ -39,17 +39,18 @@ export function MobileOptimizedLayout({ children }: MobileOptimizedLayoutProps) 
   // Mobile-first native shell — no sidebar, native header + bottom tab bar
   if (isMobile) {
     return (
-      <div className="flex min-h-[100dvh] flex-col bg-background">
+      <div className="flex min-h-[100dvh] w-full max-w-none flex-col overflow-x-hidden bg-background">
         <NativeHeader title={title} />
         <main
+          data-mobile-shell="true"
           className={cn(
-            "flex-1 w-full overflow-y-auto overflow-x-hidden native-scroll",
+            "box-border flex-1 min-w-0 w-full max-w-none overflow-y-auto overflow-x-hidden native-scroll",
             "pt-[calc(3.25rem+env(safe-area-inset-top))]",
             "pb-[calc(4.5rem+env(safe-area-inset-bottom))]",
             "px-3"
           )}
         >
-          <div className="w-full flex flex-col py-2">
+          <div className="mobile-fill-width flex w-full max-w-none min-w-0 flex-col py-2">
             {children || <Outlet />}
           </div>
         </main>
