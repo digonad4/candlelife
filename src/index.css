@@ -401,12 +401,19 @@
   html, body, #root {
     height: 100%;
     width: 100%;
+    max-width: 100%;
     -webkit-tap-highlight-color: transparent;
   }
 
   body {
     background-color: hsl(var(--background));
     overscroll-behavior-y: none;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
   }
 }
 
@@ -422,5 +429,26 @@
   .native-scroll {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+  }
+
+  @media (max-width: 767px) {
+    .mobile-fill-width,
+    .mobile-fill-width > * {
+      width: 100% !important;
+      max-width: none !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      min-width: 0;
+    }
+
+    [data-mobile-shell="true"] .max-w-7xl,
+    [data-mobile-shell="true"] .max-w-4xl,
+    [data-mobile-shell="true"] .max-w-3xl,
+    [data-mobile-shell="true"] .max-w-2xl {
+      width: 100% !important;
+      max-width: none !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
   }
 }
