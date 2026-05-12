@@ -2,9 +2,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.candlelife.app',
-  appName: 'candle-life',
+  appName: 'candlelife',
   webDir: 'dist',
   backgroundColor: '#000000',
+  server: {
+    url: 'https://4928341b-6e69-4088-a6ef-178527030fde.lovableproject.com?forceHideBadge=true',
+    cleartext: true,
+  },
   android: {
     allowMixedContent: false,
     captureInput: true,
@@ -18,20 +22,18 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1500,
+      launchShowDuration: 0,
       launchAutoHide: true,
-      launchFadeOutDuration: 300,
+      launchFadeOutDuration: 0,
       backgroundColor: '#000000',
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
       showSpinner: false,
-      splashFullScreen: true,
+      splashFullScreen: false,
       splashImmersive: true,
     },
     StatusBar: {
       style: 'DARK',
       backgroundColor: '#000000',
-      overlaysWebView: false,
+      overlaysWebView: true,
     },
     Keyboard: {
       resize: 'native',
